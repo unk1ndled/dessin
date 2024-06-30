@@ -125,6 +125,7 @@ func Visualise(name string, w, h int32, app Runnable) {
 	}
 }
 
+//TODO : rethink coupling
 func updateBuffer() {
 	if buffer.Size() == 10 {
 		buffer.PopFront()
@@ -137,7 +138,6 @@ func undo() {
 	if buffer.Size() > 0 {
 		pixels, _ = buffer.PopBack()
 		fmt.Println("redid")
-
 	}
 
 }
