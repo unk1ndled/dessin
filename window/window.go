@@ -18,10 +18,20 @@ type Color struct {
 	R, G, B byte
 }
 
+func SetPixel(x, y int, c *Color) {
+	index := (x + (int(ScreenWidth) * y)) * 4
+	if index+3 <= len(pixels)-1 && index >= 0 {
+		(pixels)[index] = c.R
+		(pixels)[index+1] = c.G
+		(pixels)[index+2] = c.B
+		//verify index +3 dedicated for alpha
+	}
+}
+
 type Runnable interface {
-	Init(*[]byte)
+	Init([]byte)
 	Update() bool
-	Draw()
+	Render()
 }
 
 func Visualise(name string, w, h int32, app Runnable) {
@@ -54,7 +64,7 @@ func Visualise(name string, w, h int32, app Runnable) {
 	pixels = make([]byte, ScreenHeight*ScreenWidth*4)
 
 	quit := false
-	app.Init(&pixels)
+	app.Init(pixels)
 
 	for !quit {
 		renderer.SetDrawColor(0, 0, 0, 255)
@@ -65,22 +75,12 @@ func Visualise(name string, w, h int32, app Runnable) {
 			}
 		}
 		app.Update()
-		app.Draw()
+		app.Render()
 
 		tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
 		renderer.Copy(tex, nil, nil)
 		renderer.Present()
-		sdl.Delay(50)
+		sdl.Delay(10)
 	}
 
-}
-
-func SetPixel(x, y int, c *Color) {
-	index := (x + (int(ScreenWidth) * y)) * 4
-	if index+3 <= len(pixels)-1 && index >= 0 {
-		pixels[index] = c.R
-		pixels[index+1] = c.G
-		pixels[index+2] = c.B
-		//verify index +3 dedicated for alpha
-	}
 }
