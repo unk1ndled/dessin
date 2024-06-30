@@ -1,48 +1,70 @@
 package util
 
-import "sync"
-
-type element struct {
-	data interface{}
-	next *element
+type Deque[T any] struct {
+	items []T
 }
 
-type stack struct {
-	lock *sync.Mutex
-	head *element
-	Size int
+func NewDeque[T any]() *Deque[T] {
+	return &Deque[T]{items: []T{}}
 }
 
-func (stk *stack) Push(data interface{}) {
-	stk.lock.Lock()
-
-	element := new(element)
-	element.data = data
-	temp := stk.head
-	element.next = temp
-	stk.head = element
-	stk.Size++
-
-	stk.lock.Unlock()
+// PushFront adds an item to the front of the deque.
+func (d *Deque[T]) PushFront(item T) {
+	d.items = append([]T{item}, d.items...)
 }
 
-func (stk *stack) Pop() interface{} {
-	if stk.head == nil {
-		return nil
+// PushBack adds an item to the back of the deque.
+func (d *Deque[T]) PushBack(item T) {
+	d.items = append(d.items, item)
+}
+
+// PopFront removes and returns the item from the front of the deque.
+func (d *Deque[T]) PopFront() (T, bool) {
+	if len(d.items) == 0 {
+		var zero T
+		return zero, false
 	}
-	stk.lock.Lock()
-	r := stk.head.data
-	stk.head = stk.head.next
-	stk.Size--
-
-	stk.lock.Unlock()
-
-	return r
+	item := d.items[0]
+	d.items = d.items[1:]
+	return item, true
 }
 
-func NewStack() *stack {
-	stk := new(stack)
-	stk.lock = &sync.Mutex{}
-	return stk
+// PopBack removes and returns the item from the back of the deque.
+func (d *Deque[T]) PopBack() (T, bool) {
+	if len(d.items) == 0 {
+		var zero T
+		return zero, false
+	}
+	index := len(d.items) - 1
+	item := d.items[index]
+	d.items = d.items[:index]
+	return item, true
+}
 
+// PeekFront returns the item at the front of the deque without removing it.
+func (d *Deque[T]) PeekFront() (T, bool) {
+	if len(d.items) == 0 {
+		var zero T
+		return zero, false
+	}
+	return d.items[0], true
+}
+
+// PeekBack returns the item at the back of the deque without removing it.
+func (d *Deque[T]) PeekBack() (T, bool) {
+	if len(d.items) == 0 {
+		var zero T
+		return zero, false
+	}
+	return d.items[len(d.items)-1], true
+}
+
+// Size returns the number of items in the deque.
+func (d *Deque[T]) Size() int {
+	return len(d.items)
+}
+
+// IsEmpty checks if the deque is empty.
+func (d *Deque[T]) IsEmpty() bool {
+	return len(d.items) == 0
 }

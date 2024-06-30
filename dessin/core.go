@@ -30,7 +30,7 @@ func (pt *Paint) Init(pxls []byte) {
 }
 func (pt *Paint) Update() bool {
 	Mouse.Update()
-	return true
+	return pt.canvas.Update()
 }
 func (pt *Paint) Render() {
 	pt.canvas.Draw()
@@ -72,9 +72,17 @@ func (cvs *Canvas) isHovered() bool {
 	return false
 }
 
+func (cvs *Canvas) isClicked() bool {
+	return cvs.isHovered() && Mouse.LeftButton
+}
+
+func (cvs *Canvas) Update() bool {
+	return (cvs.isHovered() && Mouse.LeftButton && !Mouse.PrevLeftButton)
+}
+
 func (cvs *Canvas) Draw() {
 
-	if cvs.isHovered() && Mouse.LeftButton {
+	if cvs.isClicked() {
 
 		switch cvs.currentTool {
 		case PEN:
