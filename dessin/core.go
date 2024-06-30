@@ -18,12 +18,14 @@ type Paint struct {
 	canvas *Canvas
 }
 
-func NewPaint(w, h int32) *Paint {
-	return &Paint{canvas: NewCanvas(5, 5, 395, 395)}
+func NewPaint() *Paint {
+	return &Paint{}
 }
 func (pt *Paint) Init(pxls []byte) {
 	pixels = pxls
 	Mouse = mouse.GetMouseState()
+	outline := 10
+	pt.canvas = NewCanvas(int32(outline), int32(outline), window.ScreenWidth-int32(outline), window.ScreenHeight-int32(outline))
 
 }
 func (pt *Paint) Update() bool {

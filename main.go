@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	window.Visualise("dessin", 400, 400, dessin.NewPaint(390, 390))
+	window.Visualise("dessin", 500, 500, dessin.NewPaint())
 }

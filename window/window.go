@@ -80,7 +80,7 @@ func Visualise(name string, w, h int32, app Runnable) {
 		tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
 		renderer.Copy(tex, nil, nil)
 		renderer.Present()
-		sdl.Delay(10)
+		// sdl.Delay(2)
 	}
 
 }
