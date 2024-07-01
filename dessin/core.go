@@ -3,12 +3,22 @@ package dessin
 import (
 	"github.com/unk1ndled/draw/mouse"
 	"github.com/unk1ndled/draw/primitives"
+	"github.com/unk1ndled/draw/util"
 	"github.com/unk1ndled/draw/window"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 var (
 	Mouse  *mouse.MouseState
 	pixels []byte
+
+	colors = []window.Color{
+		{R: 250, G: 0, B: 0},
+		{R: 0, G: 255, B: 0},
+		{R: 0, G: 0, B: 255}}
+
+	Z_PREV_PRESS, Z_PRESS = false, false
+	CTRL                  = false
 )
 
 // implements sdl.Runnable
@@ -28,22 +38,45 @@ func (pt *Paint) Init(pxls []byte) {
 	pt.canvas = NewCanvas(int32(outline), int32(outline), window.ScreenWidth-int32(outline), window.ScreenHeight-int32(outline))
 
 }
-func (pt *Paint) Update() bool {
+
+func (pt *Paint) Update() (bool, bool) {
 	Mouse.Update()
-	return pt.canvas.Update()
+	return pt.canvas.Update(), checkKeyPress()
 }
 func (pt *Paint) Render() {
 	pt.canvas.Draw()
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+func checkKeyPress() bool {
+	for e := sdl.PollEvent(); e != nil; e = sdl.PollEvent() {
+		switch t := e.(type) {
+		case *sdl.QuitEvent:
+			return true
+		case *sdl.KeyboardEvent:
+			switch t.Type {
+			case sdl.KEYDOWN:
+				switch t.Keysym.Scancode {
+				case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
+					CTRL = true
+				case sdl.SCANCODE_Z:
+					Z_PREV_PRESS = Z_PRESS
+					Z_PRESS = true
+				}
+			case sdl.KEYUP:
+				switch t.Keysym.Scancode {
+				case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
+					CTRL = false
+				case sdl.SCANCODE_Z:
+					Z_PREV_PRESS = Z_PRESS
+					Z_PRESS = false
+				}
+			}
+		}
+	}
+	return false
+}
 
-var (
-	colors = []window.Color{
-		{R: 250, G: 0, B: 0},
-		{R: 0, G: 255, B: 0},
-		{R: 0, G: 0, B: 255}}
-)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 type Tool byte
 
@@ -58,11 +91,13 @@ type Canvas struct {
 	width  int32
 	height int32
 
+	buffer *util.Deque[[]byte]
+
 	currentTool Tool
 }
 
 func NewCanvas(x, y, w, h int32) *Canvas {
-	return &Canvas{pos: [2]int32{x, y}, width: w, height: h, currentTool: PEN}
+	return &Canvas{pos: [2]int32{x, y}, width: w, height: h, buffer: util.NewDeque[[]byte](), currentTool: PEN}
 }
 
 func (cvs *Canvas) isHovered() bool {
@@ -77,7 +112,16 @@ func (cvs *Canvas) isClicked() bool {
 }
 
 func (cvs *Canvas) Update() bool {
-	return (cvs.isHovered() && Mouse.LeftButton && !Mouse.PrevLeftButton)
+
+	if CTRL && !Z_PRESS && Z_PREV_PRESS {
+		Z_PREV_PRESS = false
+		cvs.undo()
+		return true
+	} else if cvs.isHovered() && Mouse.LeftButton && !Mouse.PrevLeftButton {
+		cvs.updateBuffer()
+	}
+
+	return cvs.isClicked()
 }
 
 func (cvs *Canvas) Draw() {
@@ -90,4 +134,20 @@ func (cvs *Canvas) Draw() {
 		}
 	}
 
+}
+
+func (cvs *Canvas) updateBuffer() {
+	if cvs.buffer.Size() == 10 {
+		cvs.buffer.PopFront()
+	}
+
+	// Save a copy of the current pixel state
+	cvs.buffer.PushBack(append([]byte(nil), pixels...))
+}
+
+func (cvs *Canvas) undo() {
+	if cvs.buffer.Size() > 0 {
+		lastState, _ := cvs.buffer.PopBack()
+		copy(pixels, lastState) // Restore pixel data
+	}
 }

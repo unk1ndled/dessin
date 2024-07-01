@@ -5,7 +5,6 @@ import (
 	"os"
 	"unsafe"
 
-	"github.com/unk1ndled/draw/util"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -13,7 +12,6 @@ var (
 	ScreenWidth  int32
 	ScreenHeight int32
 	pixels       []byte
-	buffer       *util.Deque[[]byte]
 )
 
 type Color struct {
@@ -31,7 +29,7 @@ func SetPixel(x, y int, c *Color) {
 
 type Runnable interface {
 	Init([]byte)
-	Update() bool
+	Update() (bool, bool)
 	Render()
 }
 
@@ -67,70 +65,21 @@ func Visualise(name string, w, h int32, app Runnable) {
 	defer tex.Destroy()
 
 	pixels = make([]byte, ScreenHeight*ScreenWidth*4)
-	buffer = util.NewDeque[[]byte]()
 
 	app.Init(pixels)
 	quit := false
-	ctrlPressed, zPressed := false, false
-
-	prevz := false
-
+	update := false
 	for !quit {
-		for e := sdl.PollEvent(); e != nil; e = sdl.PollEvent() {
-			switch t := e.(type) {
-			case *sdl.QuitEvent:
-				quit = true
-			case *sdl.KeyboardEvent:
-				switch t.Type {
-				case sdl.KEYDOWN:
-					switch t.Keysym.Scancode {
-					case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
-						ctrlPressed = true
-					case sdl.SCANCODE_Z:
-						prevz = zPressed
-						zPressed = true
-					}
-				case sdl.KEYUP:
-					switch t.Keysym.Scancode {
-					case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
-						ctrlPressed = false
-					case sdl.SCANCODE_Z:
-						prevz = zPressed
-						zPressed = false
-					}
-				}
-			}
-		}
 
-		if !zPressed && ctrlPressed && prevz {
-			undo()
-			prevz = false
+		update, quit = app.Update()
+		if update {
+			app.Render()
+			tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
+			renderer.Clear()
+			renderer.Copy(tex, nil, nil)
 		}
-
-		if app.Update() {
-			updateBuffer()
-		}
-		app.Render()
-
-		tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
-		renderer.Clear()
-		renderer.Copy(tex, nil, nil)
 		renderer.Present()
+
 		//sdl.Delay(16)
 	}
-}
-
-// TODO : rethink coupling
-func updateBuffer() {
-	if buffer.Size() == 10 {
-		buffer.PopFront()
-	}
-	buffer.PushBack(append([]byte(nil), pixels...))
-}
-
-func undo() {
-	if buffer.Size() > 0 {
-		pixels, _ = buffer.PopBack()
-	}
-
 }
