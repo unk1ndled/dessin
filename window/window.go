@@ -74,7 +74,6 @@ func Visualise(name string, w, h int32, app Runnable) {
 	ctrlPressed, zPressed := false, false
 
 	prevz := false
-	prevctrl := false
 
 	for !quit {
 		for e := sdl.PollEvent(); e != nil; e = sdl.PollEvent() {
@@ -86,7 +85,6 @@ func Visualise(name string, w, h int32, app Runnable) {
 				case sdl.KEYDOWN:
 					switch t.Keysym.Scancode {
 					case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
-						prevctrl = ctrlPressed
 						ctrlPressed = true
 					case sdl.SCANCODE_Z:
 						prevz = zPressed
@@ -95,7 +93,6 @@ func Visualise(name string, w, h int32, app Runnable) {
 				case sdl.KEYUP:
 					switch t.Keysym.Scancode {
 					case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
-						prevctrl = ctrlPressed
 						ctrlPressed = false
 					case sdl.SCANCODE_Z:
 						prevz = zPressed
@@ -105,10 +102,8 @@ func Visualise(name string, w, h int32, app Runnable) {
 			}
 		}
 
-		if !zPressed && prevctrl && prevz {
+		if !zPressed && ctrlPressed && prevz {
 			undo()
-			fmt.Println("ctrl + z")
-			prevctrl = false
 			prevz = false
 		}
 
@@ -125,19 +120,17 @@ func Visualise(name string, w, h int32, app Runnable) {
 	}
 }
 
-//TODO : rethink coupling
+// TODO : rethink coupling
 func updateBuffer() {
 	if buffer.Size() == 10 {
 		buffer.PopFront()
 	}
 	buffer.PushBack(append([]byte(nil), pixels...))
-	fmt.Println("pushed")
 }
 
 func undo() {
 	if buffer.Size() > 0 {
 		pixels, _ = buffer.PopBack()
-		fmt.Println("redid")
 	}
 
 }

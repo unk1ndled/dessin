@@ -25,6 +25,7 @@ func (d *Deque[T]) PopFront() (T, bool) {
 		return zero, false
 	}
 	item := d.items[0]
+	d.items[0] = *new(T) // Clear the reference ie setting the discarded value to a zero of type T
 	d.items = d.items[1:]
 	return item, true
 }
@@ -37,6 +38,7 @@ func (d *Deque[T]) PopBack() (T, bool) {
 	}
 	index := len(d.items) - 1
 	item := d.items[index]
+	d.items[index] = *new(T) // Clear the reference
 	d.items = d.items[:index]
 	return item, true
 }
