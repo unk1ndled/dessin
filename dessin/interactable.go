@@ -8,8 +8,8 @@ type Component struct {
 }
 
 // Contains pixel at (x , y) ?
-func (cmpt *Component) contains(x, y int) bool {
-	if x >= int(cmpt.X) && y > int(cmpt.Y) && x < int(cmpt.X+cmpt.Width) && y < int(cmpt.Y+cmpt.Height) {
+func (cmpt *Component) contains(x, y int32) bool {
+	if x >= (cmpt.X) && y > (cmpt.Y) && x < (cmpt.X+cmpt.Width) && y < (cmpt.Y+cmpt.Height) {
 		return true
 	}
 	return false
@@ -19,12 +19,16 @@ func (cmpt *Component) isHovered() bool {
 	return cmpt.contains(Mouse.X, Mouse.Y)
 }
 
-func (cmpt *Component) isClicked() bool {
+func (cmpt *Component) isPressed() bool {
 	return cmpt.isHovered() && Mouse.LeftButton
 }
 
-// was clicked last frame ?
-func (cmpt *Component) wasClicked() bool {
+// was Pressed last frame ?
+func (cmpt *Component) wasPressed() bool {
 	return Mouse.PrevLeftButton && cmpt.contains(Mouse.PrevX, Mouse.PrevY)
 }
 
+func (cmpt *Component) Click() bool {
+	return cmpt.wasPressed() && !Mouse.LeftButton
+
+}

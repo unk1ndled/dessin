@@ -47,8 +47,8 @@ func (pt *Paint) setBackground() {
 	bg := &window.Color{R: 15, G: 15, B: 15}
 	for i := 0; i < int(window.ScreenWidth); i++ {
 		for j := 0; j < int(window.ScreenHeight); j++ {
-			if !pt.canvas.contains(i, j) {
-				window.SetPixel(i, j, bg)
+			if !pt.canvas.contains(int32(i), int32(j)) {
+				window.SetPixel(int32(i), int32(j), bg)
 			}
 		}
 	}

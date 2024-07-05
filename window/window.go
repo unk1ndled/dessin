@@ -15,18 +15,18 @@ var (
 	pixels       []byte
 )
 
-func GetPixelsIndex(x, y int) int {
-	return (x + (int(ScreenWidth) * y)) * 4
+func GetPixelsIndex(x, y int32) int32 {
+	return (x + ((ScreenWidth) * y)) * 4
 }
-func GetPixelColor(x, y int) Color {
+func GetPixelColor(x, y int32) Color {
 	index := GetPixelsIndex(x, y)
 	return Color{pixels[index], pixels[index+1], pixels[index+2]}
 }
 
-func SetPixel(x, y int, c *Color) {
+func SetPixel(x, y int32, c *Color) {
 
 	index := GetPixelsIndex(x, y)
-	if index+3 <= len(pixels)-1 && index >= 0 {
+	if index+3 <= int32(len(pixels))-1 && index >= 0 {
 		pixels[index] = c.R
 		pixels[index+1] = c.G
 		pixels[index+2] = c.B
@@ -87,11 +87,9 @@ func Visualise(name string, w, h int32, app Runnable) {
 	quit := false
 	update := false
 	for !quit {
-
 		update, quit = app.Update()
 		if update {
 			app.Render()
-
 		}
 		tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
 		renderer.Clear()

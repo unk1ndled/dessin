@@ -1,6 +1,7 @@
 package dessin
 
 import (
+	"log"
 	"math"
 
 	"github.com/unk1ndled/draw/util"
@@ -8,6 +9,7 @@ import (
 )
 
 type Tool byte
+type Operation byte
 
 const (
 	MAX_BUFFER_LENGTH = 15
@@ -15,13 +17,20 @@ const (
 	PEN = iota
 	ERASER
 	FILL
+
+	UNDO = iota
+	DRAW
+	CLICK
 )
 
 type Canvas struct {
 	*Component
-	buffer      *util.Deque[[]byte]
+	buffer *util.Deque[[]byte]
+
 	currentTool Tool
-	lineWidth   int
+	currOp      Operation
+
+	lineWidth int32
 }
 
 func NewCanvas(x, y, w, h int32) *Canvas {
@@ -35,35 +44,47 @@ func (cvs *Canvas) Update() bool {
 
 	if CTRL && !Z_PRESS && Z_PREV_PRESS {
 		Z_PREV_PRESS = false
-		cvs.undo()
-		return false
-	} else if cvs.isClicked() && !Mouse.PrevLeftButton {
-		cvs.updateBuffer()
+		cvs.currOp = UNDO
+		return true
+	} else if cvs.isPressed() {
+		if !Mouse.PrevLeftButton {
+			cvs.updateBuffer()
+		}
+		cvs.currOp = DRAW
+		return true
+	} else if cvs.Click() {
+		cvs.currOp = CLICK
+		return true
 	}
 
-	return cvs.isClicked() || cvs.wasClicked()
+	return false
 }
 
 func (cvs *Canvas) Draw() {
 
-	if Mouse.LeftButton {
-		switch cvs.currentTool {
-		case PEN:
-			x1, y1, x2, y2 := cvs.ValidateX(Mouse.PrevX), cvs.ValidateY(Mouse.PrevY), cvs.ValidateX(Mouse.X), cvs.ValidateY(Mouse.Y)
-			cvs.DrawLine(x1, y1, x2, y2, cvs.lineWidth, &colors[1])
-		case ERASER:
-			x1, y1, x2, y2 := cvs.ValidateX(Mouse.PrevX), cvs.ValidateY(Mouse.PrevY), cvs.ValidateX(Mouse.X), cvs.ValidateY(Mouse.Y)
-			cvs.Erase(x1, y1, x2, y2)
-		}
-	} else if !Mouse.LeftButton {
+	switch cvs.currOp {
+	case UNDO:
+		cvs.undo()
+		log.Println("undind")
+
+	case CLICK:
 		switch cvs.currentTool {
 		case FILL:
-			// cvs.updateBuffer()
 			clicked := window.GetPixelColor(Mouse.X, Mouse.Y)
 			cvs.Fill(Mouse.X, Mouse.Y, &colors[2], &clicked)
-		}
-	}
+			log.Println("filled")
 
+		}
+	case DRAW:
+		switch cvs.currentTool {
+		case PEN:
+			cvs.DrawLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, &colors[1])
+		case ERASER:
+			cvs.Erase(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y)
+		}
+		log.Println("drew")
+
+	}
 }
 
 func (cvs *Canvas) updateBuffer() {
@@ -85,27 +106,27 @@ func (cvs *Canvas) setTool(t Tool) {
 	cvs.currentTool = t
 }
 
-func (cvs *Canvas) ValidateX(x int) int {
-	if x < int(cvs.X) {
-		return int(cvs.X)
-	} else if x > int(cvs.X)+int(cvs.Width) {
-		return int(cvs.X + cvs.Width)
-	} else {
-		return x
-	}
-}
-func (cvs *Canvas) ValidateY(y int) int {
-	if y < int(cvs.Y) {
-		return int(cvs.Y)
-	} else if y > int(cvs.Y)+int(cvs.Height) {
-		return int(cvs.Y + cvs.Height)
-	} else {
-		return y
-	}
-}
+// func (cvs *Canvas) ValidateX(x int) int {
+// 	if x < int(cvs.X) {
+// 		return int(cvs.X)
+// 	} else if x > int(cvs.X)+int(cvs.Width) {
+// 		return int(cvs.X + cvs.Width)
+// 	} else {
+// 		return x
+// 	}
+// }
+// func (cvs *Canvas) ValidateY(y int) int {
+// 	if y < int(cvs.Y) {
+// 		return int(cvs.Y)
+// 	} else if y > int(cvs.Y)+int(cvs.Height) {
+// 		return int(cvs.Y + cvs.Height)
+// 	} else {
+// 		return y
+// 	}
+// }
 
-func (cvs *Canvas) Fill(x0, y0 int, fillColor, clickedColor *window.Color) {
-	if x0 >= int(cvs.X) && x0 <= int(cvs.X)+int(cvs.Width) && y0 >= int(cvs.Y) && y0 <= int(cvs.Y+cvs.Height) {
+func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
+	if x0 >= (cvs.X) && x0 <= (cvs.X)+(cvs.Width) && y0 >= (cvs.Y) && y0 <= (cvs.Y+cvs.Height) {
 		curPixelCLr := window.GetPixelColor(x0, y0)
 		if curPixelCLr.Equals(fillColor) {
 			return
@@ -122,14 +143,14 @@ func (cvs *Canvas) Fill(x0, y0 int, fillColor, clickedColor *window.Color) {
 
 // Bresenham's Line Algorithm
 // explanation : https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-func (cvs *Canvas) DrawLine(x1, y1, x2, y2, width int, color *window.Color) {
-	dx := int(math.Abs(float64(x2 - x1)))
-	sx := -1
+func (cvs *Canvas) DrawLine(x1, y1, x2, y2, width int32, color *window.Color) {
+	dx := int32(math.Abs(float64(x2 - x1)))
+	sx := int32(-1)
 	if x1 < x2 {
 		sx = 1
 	}
-	dy := -int(math.Abs(float64(y2 - y1)))
-	sy := -1
+	dy := -int32(math.Abs(float64(y2 - y1)))
+	sy := int32(-1)
 	if y1 < y2 {
 		sy = 1
 	}
@@ -160,10 +181,10 @@ func (cvs *Canvas) DrawLine(x1, y1, x2, y2, width int, color *window.Color) {
 	}
 }
 
-func (cvs *Canvas) DrawWidth(x1, y1, width int, color *window.Color) {
+func (cvs *Canvas) DrawWidth(x1, y1, width int32, color *window.Color) {
 
-	xstart, xend := int(math.Max(float64(x1-width), float64(cvs.X))), int(math.Min(float64(x1+width), float64(cvs.X+cvs.Width)))
-	ystart, yend := int(math.Max(float64(y1-width), float64(cvs.Y))), int(math.Min(float64(y1+width), float64(cvs.Y+cvs.Height)))
+	xstart, xend := int32(math.Max(float64(x1-width), float64(cvs.X))), int32(math.Min(float64(x1+width), float64(cvs.X+cvs.Width)))
+	ystart, yend := int32(math.Max(float64(y1-width), float64(cvs.Y))), int32(math.Min(float64(y1+width), float64(cvs.Y+cvs.Height)))
 
 	for x := xstart; x <= xend; x++ {
 		for y := ystart; y <= yend; y++ {
@@ -172,29 +193,29 @@ func (cvs *Canvas) DrawWidth(x1, y1, width int, color *window.Color) {
 	}
 }
 
-func (cvs *Canvas) Erase(x0, y0, x1, y1 int) {
+func (cvs *Canvas) Erase(x0, y0, x1, y1 int32) {
 	cvs.DrawLine(x0, y0, x1, y1, cvs.lineWidth, &basecolor)
 }
 
 // Digital differential analyzer
-func DrawLineOld(x1, y1, x2, y2 int, color *window.Color) {
-	dx := x2 - x1
-	dy := y2 - y1
+// func DrawLineOld(x1, y1, x2, y2 int, color *window.Color) {
+// 	dx := x2 - x1
+// 	dy := y2 - y1
 
-	var step float64
-	if math.Abs(float64(dx)) > math.Abs(float64(dy)) {
-		step = math.Abs(float64(dx))
-	} else {
-		step = math.Abs(float64(dy))
-	}
-	xInc := float64(dx) / step
-	yInc := float64(dy) / step
+// 	var step float64
+// 	if math.Abs(float64(dx)) > math.Abs(float64(dy)) {
+// 		step = math.Abs(float64(dx))
+// 	} else {
+// 		step = math.Abs(float64(dy))
+// 	}
+// 	xInc := float64(dx) / step
+// 	yInc := float64(dy) / step
 
-	x, y := x1, y1
-	for i := 0; i < int(step); i++ {
-		window.SetPixel(x, y, color)
-		x += int(xInc)
-		y += int(yInc)
-	}
+// 	x, y := x1, y1
+// 	for i := 0; i < int(step); i++ {
+// 		window.SetPixel(x, y, color)
+// 		x += int(xInc)
+// 		y += int(yInc)
+// 	}
 
-}
+// }

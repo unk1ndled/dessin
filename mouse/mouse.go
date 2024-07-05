@@ -7,8 +7,8 @@ type MouseState struct {
 	RightButton     bool
 	PrevLeftButton  bool
 	PrevRightButton bool
-	PrevX, PrevY    int
-	X, Y            int
+	PrevX, PrevY    int32
+	X, Y            int32
 }
 
 func GetMouseState() *MouseState {
@@ -16,8 +16,8 @@ func GetMouseState() *MouseState {
 	leftButton := mouseButtonState & sdl.ButtonLMask()
 	rightButton := mouseButtonState & sdl.ButtonRMask()
 	var result MouseState
-	result.X = int(mouseX)
-	result.Y = int(mouseY)
+	result.X = mouseX
+	result.Y = mouseY
 	result.LeftButton = !(leftButton == 0)
 	result.RightButton = !(rightButton == 0)
 	return &result
@@ -29,8 +29,8 @@ func (mouseState *MouseState) Update() {
 	mouseState.PrevRightButton = mouseState.RightButton
 
 	X, Y, mousebuttonState := sdl.GetMouseState()
-	mouseState.X = int(X)
-	mouseState.Y = int(Y)
+	mouseState.X = X
+	mouseState.Y = Y
 	mouseState.LeftButton = !((mousebuttonState & sdl.ButtonLMask()) == 0)
 	mouseState.RightButton = !((mousebuttonState & sdl.ButtonRMask()) == 0)
 }
