@@ -14,10 +14,6 @@ var (
 	pixels       []byte
 )
 
-type Color struct {
-	R, G, B byte
-}
-
 func GetPixelsIndex(x, y int) int {
 	return (x + (int(ScreenWidth) * y)) * 4
 }
@@ -83,10 +79,11 @@ func Visualise(name string, w, h int32, app Runnable) {
 		update, quit = app.Update()
 		if update {
 			app.Render()
-			tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
-			renderer.Clear()
-			renderer.Copy(tex, nil, nil)
+
 		}
+		tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
+		renderer.Clear()
+		renderer.Copy(tex, nil, nil)
 		renderer.Present()
 
 		//sdl.Delay(16)
