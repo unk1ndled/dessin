@@ -18,19 +18,17 @@ const (
 )
 
 type Canvas struct {
-	X      int32
-	Y      int32
-	Width  int32
-	Height int32
-
-	buffer *util.Deque[[]byte]
-
+	*Component
+	buffer      *util.Deque[[]byte]
 	currentTool Tool
 	lineWidth   int
 }
 
 func NewCanvas(x, y, w, h int32) *Canvas {
-	return &Canvas{X: x, Y: y, Width: w, Height: h, buffer: util.NewDeque[[]byte](), currentTool: PEN, lineWidth: 5}
+	return &Canvas{
+		Component:   &Component{X: x, Y: y, Width: w, Height: h},
+		buffer:      util.NewDeque[[]byte](),
+		currentTool: PEN, lineWidth: 20}
 }
 
 func (cvs *Canvas) Update() bool {
@@ -66,25 +64,6 @@ func (cvs *Canvas) Draw() {
 		}
 	}
 
-}
-
-func (cvs *Canvas) doesCover(x, y int) bool {
-	if x >= int(cvs.X) && y > int(cvs.Y) && x < int(cvs.X+cvs.Width) && y < int(cvs.Y+cvs.Height) {
-		return true
-	}
-	return false
-}
-
-func (cvs *Canvas) isHovered() bool {
-	return cvs.doesCover(Mouse.X, Mouse.Y)
-}
-
-func (cvs *Canvas) isClicked() bool {
-	return cvs.isHovered() && Mouse.LeftButton
-}
-
-func (cvs *Canvas) wasClicked() bool {
-	return Mouse.PrevLeftButton && cvs.doesCover(Mouse.PrevX, Mouse.PrevY)
 }
 
 func (cvs *Canvas) updateBuffer() {

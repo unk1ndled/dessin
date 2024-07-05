@@ -33,9 +33,25 @@ func NewPaint() *Paint {
 func (pt *Paint) Init(pxls []byte) {
 	pixels = pxls
 	Mouse = mouse.GetMouseState()
-	outline := 10
-	pt.canvas = NewCanvas(int32(outline), int32(outline), window.ScreenWidth-2*int32(outline), window.ScreenHeight-2*int32(outline))
+	xoffset, yoffest := 10, 10
+	topbar := 40
+	pt.canvas = NewCanvas(int32(xoffset),
+		int32(yoffest+topbar),
+		window.ScreenWidth-2*int32(xoffset),
+		window.ScreenHeight-int32(2*(yoffest)+(topbar)))
+	pt.setBackground()
 
+}
+
+func (pt *Paint) setBackground() {
+	bg := &window.Color{R: 15, G: 15, B: 15}
+	for i := 0; i < int(window.ScreenWidth); i++ {
+		for j := 0; j < int(window.ScreenHeight); j++ {
+			if !pt.canvas.contains(i, j) {
+				window.SetPixel(i, j, bg)
+			}
+		}
+	}
 }
 
 func (pt *Paint) Update() (bool, bool) {
@@ -83,6 +99,3 @@ func (pt *Paint) checkKeyPress() bool {
 	}
 	return false
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-

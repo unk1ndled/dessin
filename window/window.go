@@ -5,6 +5,7 @@ import (
 	"os"
 	"unsafe"
 
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -62,10 +63,21 @@ func Visualise(name string, w, h int32, app Runnable) {
 	}
 	defer renderer.Destroy()
 
+	// Load the icon image
+	icon, err := img.Load("icon.jpg")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load icon: %s\n", err)
+		os.Exit(3)
+	}
+	defer icon.Free()
+
+	// Set the window icon
+	window.SetIcon(icon)
+
 	tex, err := renderer.CreateTexture(sdl.PIXELFORMAT_ABGR8888, sdl.TEXTUREACCESS_STREAMING, ScreenWidth, ScreenHeight)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create texture: %s\n", err)
-		os.Exit(4)
+		os.Exit(5)
 	}
 	defer tex.Destroy()
 
