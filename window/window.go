@@ -19,6 +19,9 @@ type Color struct {
 }
 
 func SetPixel(x, y int, c *Color) {
+	if x <= 0 || x >= int(ScreenWidth) || y <= 0 || y >= int(ScreenHeight) {
+		return
+	}
 	index := (x + (int(ScreenWidth) * y)) * 4
 	if index+3 <= len(pixels)-1 && index >= 0 {
 		pixels[index] = c.R

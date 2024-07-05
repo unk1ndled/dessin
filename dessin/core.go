@@ -130,7 +130,7 @@ func (cvs *Canvas) Draw() {
 
 		switch cvs.currentTool {
 		case PEN:
-			primitives.DrawLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, &colors[0])
+			primitives.DrawLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, &colors[1])
 		}
 	}
 
