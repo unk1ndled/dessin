@@ -7,6 +7,7 @@ import (
 )
 
 // Bresenham's Line Algorithm
+// explanation : https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 func DrawLine(x1, y1, x2, y2 int, color *window.Color) {
 	dx := int(math.Abs(float64(x2 - x1)))
 	sx := -1
@@ -21,7 +22,16 @@ func DrawLine(x1, y1, x2, y2 int, color *window.Color) {
 	err := dx + dy
 
 	for {
+		// window.SetPixel(x1+1, y1-1, color)
+		window.SetPixel(x1+1, y1, color)
+		// window.SetPixel(x1+1, y1+1, color)
+		window.SetPixel(x1, y1-1, color)
 		window.SetPixel(x1, y1, color)
+		window.SetPixel(x1, y1+1, color)
+		// window.SetPixel(x1-1, y1-1, color)
+		window.SetPixel(x1-1, y1, color)
+		// window.SetPixel(x1-1, y1+1, color)
+
 		if x1 == x2 && y1 == y2 {
 			break
 		}
@@ -43,6 +53,7 @@ func DrawLine(x1, y1, x2, y2 int, color *window.Color) {
 	}
 }
 
+// Digital differential analyzer
 func DrawLineOld(x1, y1, x2, y2 int, color *window.Color) {
 	dx := x2 - x1
 	dy := y2 - y1

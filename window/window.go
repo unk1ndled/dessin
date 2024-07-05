@@ -18,11 +18,17 @@ type Color struct {
 	R, G, B byte
 }
 
+func GetPixelsIndex(x, y int) int {
+	return (x + (int(ScreenWidth) * y)) * 4
+}
+func GetPixelColor(x, y int) Color {
+	index := GetPixelsIndex(x, y)
+	return Color{pixels[index], pixels[index+1], pixels[index+2]}
+}
+
 func SetPixel(x, y int, c *Color) {
-	if x <= 0 || x >= int(ScreenWidth) || y <= 0 || y >= int(ScreenHeight) {
-		return
-	}
-	index := (x + (int(ScreenWidth) * y)) * 4
+
+	index := GetPixelsIndex(x, y)
 	if index+3 <= len(pixels)-1 && index >= 0 {
 		pixels[index] = c.R
 		pixels[index+1] = c.G
