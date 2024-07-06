@@ -11,10 +11,6 @@ var (
 	pixels []byte
 
 	basecolor = window.Color{R: 0, G: 0, B: 0}
-	colors    = []window.Color{
-		{R: 250, G: 0, B: 0},
-		{R: 0, G: 255, B: 0},
-		{R: 0, G: 0, B: 255}}
 
 	Z_PREV_PRESS, Z_PRESS = false, false
 	CTRL                  = false
@@ -24,8 +20,8 @@ var (
 // Paint acts as the wrapper struct for the program
 // thus its responsible for the inner components
 type Paint struct {
-	buttons []*Button
-	canvas  *Canvas
+	topbar *TopBar
+	canvas *Canvas
 }
 
 func NewPaint() *Paint {
@@ -44,11 +40,20 @@ func (pt *Paint) Init(pxls []byte) {
 
 	topBarPadding := yCanvasOffest / 2
 	btnheight := topbar - (topBarPadding)
-	btnWidth := btnheight
-	pt.button = NewButton(xCanvasOffset, topBarPadding, btnWidth, btnheight, &window.Color{R: 40, G: 40, B: 40}, func() { pt.canvas.setTool(FILL) })
+
+	fns := []func(){
+		func() { pt.canvas.setTool(FILL) },
+		func() { pt.canvas.setTool(PEN) },
+		func() { pt.canvas.setTool(ERASER) },
+		func() { pt.canvas.setColor(0) },
+		func() { pt.canvas.setColor(1) },
+		func() { pt.canvas.setColor(2) },
+		func() { pt.canvas.modifyDrawWidth(-1) },
+		func() { pt.canvas.modifyDrawWidth(1) },
+	}
+	pt.topbar = NewTopBar(xCanvasOffset, topBarPadding, btnheight, fns)
 
 }
-
 
 func (pt *Paint) setBackground() {
 	bg := &window.Color{R: 25, G: 25, B: 25}
@@ -63,7 +68,7 @@ func (pt *Paint) setBackground() {
 
 func (pt *Paint) Update() (bool, bool) {
 	Mouse.Update()
-	pt.button.Update()
+	pt.topbar.Update()
 	quit := pt.checkKeyPress()
 	update := pt.canvas.Update()
 	return update, quit

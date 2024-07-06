@@ -10,6 +10,15 @@ import (
 type Tool byte
 type Operation byte
 
+var (
+	colors = []*window.Color{
+		{100, 10, 180},
+		{106, 90, 205},
+		{0, 255, 0},
+		{139, 0, 0},
+	}
+)
+
 const (
 	MAX_BUFFER_LENGTH = 15
 
@@ -27,16 +36,20 @@ type Canvas struct {
 	buffer *util.Deque[[]byte]
 
 	currentTool Tool
+	drawColor   *window.Color
 	currOp      Operation
 
 	lineWidth int32
 }
 
 func NewCanvas(x, y, w, h int32) *Canvas {
+
 	return &Canvas{
 		Component:   &Component{X: x, Y: y, Width: w, Height: h},
 		buffer:      util.NewDeque[[]byte](),
+		drawColor:   colors[0],
 		currentTool: PEN, lineWidth: 20}
+
 }
 
 func (cvs *Canvas) Update() bool {
@@ -70,14 +83,14 @@ func (cvs *Canvas) Draw() {
 		switch cvs.currentTool {
 		case FILL:
 			clicked := window.GetPixelColor(Mouse.X, Mouse.Y)
-			cvs.Fill(Mouse.X, Mouse.Y, &colors[2], &clicked)
+			cvs.Fill(Mouse.X, Mouse.Y, cvs.drawColor, &clicked)
 			// log.Println("filled")
 
 		}
 	case DRAW:
 		switch cvs.currentTool {
 		case PEN:
-			DrawLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, &colors[1], cvs.DrawWidth)
+			DrawLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, cvs.drawColor, cvs.DrawWidth)
 		case ERASER:
 			cvs.Erase(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y)
 		}
@@ -104,24 +117,14 @@ func (cvs *Canvas) setTool(t Tool) {
 	cvs.currentTool = t
 }
 
-// func (cvs *Canvas) ValidateX(x int) int {
-// 	if x < int(cvs.X) {
-// 		return int(cvs.X)
-// 	} else if x > int(cvs.X)+int(cvs.Width) {
-// 		return int(cvs.X + cvs.Width)
-// 	} else {
-// 		return x
-// 	}
-// }
-// func (cvs *Canvas) ValidateY(y int) int {
-// 	if y < int(cvs.Y) {
-// 		return int(cvs.Y)
-// 	} else if y > int(cvs.Y)+int(cvs.Height) {
-// 		return int(cvs.Y + cvs.Height)
-// 	} else {
-// 		return y
-// 	}
-// }
+func (cvs *Canvas) modifyDrawWidth(factor int32) {
+	cvs.lineWidth += factor
+	cvs.lineWidth = int32(math.Max(0, float64(cvs.lineWidth)))
+}
+
+func (cvs *Canvas) setColor(index int) {
+	cvs.drawColor = colors[index]
+}
 
 func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
 	if x0 >= (cvs.X) && x0 <= (cvs.X)+(cvs.Width) && y0 >= (cvs.Y) && y0 <= (cvs.Y+cvs.Height) {

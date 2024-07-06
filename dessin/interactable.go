@@ -70,15 +70,19 @@ func (btn *Button) Init() {
 	btn.ResetVisuals()
 }
 
-func (btn *Button) Update() {
+func (btn *Button) Update() bool {
 
-	if btn.isPressed() {
+	if btn.isPressed()  {
 		btn.clickVisuals()
+		return true
 
 	} else if btn.wasPressed() {
 		btn.OnCLick()
 		btn.ResetVisuals()
+		return true
+
 	}
+	return false
 }
 
 func (btn *Button) clickVisuals() {
