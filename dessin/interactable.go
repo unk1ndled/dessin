@@ -1,6 +1,8 @@
 package dessin
 
-import "github.com/unk1ndled/draw/window"
+import (
+	"github.com/unk1ndled/draw/window"
+)
 
 type Component struct {
 	X      int32
@@ -35,7 +37,7 @@ func (cmpt *Component) isClicked() bool {
 
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////
 type OnCLick func()
 
 const (
@@ -45,6 +47,8 @@ const (
 type Button struct {
 	Component
 	OnCLick
+
+	mouseEnter bool
 
 	baseColor *window.Color
 	light     *window.Color
@@ -71,18 +75,46 @@ func (btn *Button) Init() {
 }
 
 func (btn *Button) Update() bool {
-
-	if btn.isPressed()  {
-		btn.clickVisuals()
-		return true
-
-	} else if btn.wasPressed() {
-		btn.OnCLick()
-		btn.ResetVisuals()
-		return true
-
+	if btn.isHovered() {
+		if !Mouse.LeftButton {
+			if !btn.mouseEnter {
+				btn.mouseEnter = true
+				// log.Println("entered")
+			} else if btn.wasPressed() {
+				btn.OnCLick()
+				btn.ResetVisuals()
+				// log.Println("clicked")
+				return true
+			}
+		} else if btn.mouseEnter {
+			btn.clickVisuals()
+			// log.Println("pressing")
+			return true
+		}
+	} else {
+		if btn.mouseEnter {
+			// log.Println("exited")
+			btn.ResetVisuals()
+			btn.mouseEnter = false
+			return true
+		}
 	}
 	return false
+
+	// if btn.isHovered() && !Mouse.LeftButton {
+	// 	btn.mouseEnter = true
+	// } else if !btn.isHovered() && btn.mouseEnter {
+	// 	btn.mouseEnter = false
+	// }
+	// if btn.isPressed() && btn.mouseEnter {
+	// 	btn.clickVisuals()
+	// 	return true
+	// } else if btn.wasPressed() {
+	// 	btn.OnCLick()
+	// 	btn.ResetVisuals()
+	// 	return true
+
+	// }
 }
 
 func (btn *Button) clickVisuals() {
