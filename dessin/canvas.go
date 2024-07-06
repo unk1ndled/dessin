@@ -1,7 +1,6 @@
 package dessin
 
 import (
-	"log"
 	"math"
 
 	"github.com/unk1ndled/draw/util"
@@ -52,7 +51,7 @@ func (cvs *Canvas) Update() bool {
 		}
 		cvs.currOp = DRAW
 		return true
-	} else if cvs.Click() {
+	} else if cvs.isClicked() {
 		cvs.currOp = CLICK
 		return true
 	}
@@ -65,24 +64,23 @@ func (cvs *Canvas) Draw() {
 	switch cvs.currOp {
 	case UNDO:
 		cvs.undo()
-		log.Println("undind")
+		// log.Println("undind")
 
 	case CLICK:
 		switch cvs.currentTool {
 		case FILL:
 			clicked := window.GetPixelColor(Mouse.X, Mouse.Y)
 			cvs.Fill(Mouse.X, Mouse.Y, &colors[2], &clicked)
-			log.Println("filled")
+			// log.Println("filled")
 
 		}
 	case DRAW:
 		switch cvs.currentTool {
 		case PEN:
-			cvs.DrawLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, &colors[1])
+			DrawLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, &colors[1], cvs.DrawWidth)
 		case ERASER:
 			cvs.Erase(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y)
 		}
-		log.Println("drew")
 
 	}
 }
@@ -141,46 +139,6 @@ func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
 	}
 }
 
-// Bresenham's Line Algorithm
-// explanation : https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-func (cvs *Canvas) DrawLine(x1, y1, x2, y2, width int32, color *window.Color) {
-	dx := int32(math.Abs(float64(x2 - x1)))
-	sx := int32(-1)
-	if x1 < x2 {
-		sx = 1
-	}
-	dy := -int32(math.Abs(float64(y2 - y1)))
-	sy := int32(-1)
-	if y1 < y2 {
-		sy = 1
-	}
-	err := dx + dy
-
-	for {
-
-		go cvs.DrawWidth(x1, y1, width, color)
-
-		if x1 == x2 && y1 == y2 {
-			break
-		}
-		err2 := 2 * err
-		if err2 >= dy {
-			if x1 == x2 {
-				break
-			}
-			err += dy
-			x1 += sx
-		}
-		if err2 <= dx {
-			if y1 == y2 {
-				break
-			}
-			err += dx
-			y1 += sy
-		}
-	}
-}
-
 func (cvs *Canvas) DrawWidth(x1, y1, width int32, color *window.Color) {
 
 	xstart, xend := int32(math.Max(float64(x1-width), float64(cvs.X))), int32(math.Min(float64(x1+width), float64(cvs.X+cvs.Width)))
@@ -194,28 +152,5 @@ func (cvs *Canvas) DrawWidth(x1, y1, width int32, color *window.Color) {
 }
 
 func (cvs *Canvas) Erase(x0, y0, x1, y1 int32) {
-	cvs.DrawLine(x0, y0, x1, y1, cvs.lineWidth, &basecolor)
+	DrawLine(x0, y0, x1, y1, cvs.lineWidth, &basecolor, cvs.DrawWidth)
 }
-
-// Digital differential analyzer
-// func DrawLineOld(x1, y1, x2, y2 int, color *window.Color) {
-// 	dx := x2 - x1
-// 	dy := y2 - y1
-
-// 	var step float64
-// 	if math.Abs(float64(dx)) > math.Abs(float64(dy)) {
-// 		step = math.Abs(float64(dx))
-// 	} else {
-// 		step = math.Abs(float64(dy))
-// 	}
-// 	xInc := float64(dx) / step
-// 	yInc := float64(dy) / step
-
-// 	x, y := x1, y1
-// 	for i := 0; i < int(step); i++ {
-// 		window.SetPixel(x, y, color)
-// 		x += int(xInc)
-// 		y += int(yInc)
-// 	}
-
-// }

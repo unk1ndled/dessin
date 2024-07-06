@@ -24,7 +24,8 @@ var (
 // Paint acts as the wrapper struct for the program
 // thus its responsible for the inner components
 type Paint struct {
-	canvas *Canvas
+	buttons []*Button
+	canvas  *Canvas
 }
 
 func NewPaint() *Paint {
@@ -33,18 +34,24 @@ func NewPaint() *Paint {
 func (pt *Paint) Init(pxls []byte) {
 	pixels = pxls
 	Mouse = mouse.GetMouseState()
-	xoffset, yoffest := 10, 10
-	topbar := 40
-	pt.canvas = NewCanvas(int32(xoffset),
-		int32(yoffest+topbar),
-		window.ScreenWidth-2*int32(xoffset),
-		window.ScreenHeight-int32(2*(yoffest)+(topbar)))
+	xCanvasOffset, yCanvasOffest := int32(10), int32(10)
+	topbar := int32(40)
+	pt.canvas = NewCanvas(int32(xCanvasOffset),
+		(yCanvasOffest + topbar),
+		window.ScreenWidth-2*(xCanvasOffset),
+		window.ScreenHeight-(2*(yCanvasOffest)+(topbar)))
 	pt.setBackground()
+
+	topBarPadding := yCanvasOffest / 2
+	btnheight := topbar - (topBarPadding)
+	btnWidth := btnheight
+	pt.button = NewButton(xCanvasOffset, topBarPadding, btnWidth, btnheight, &window.Color{R: 40, G: 40, B: 40}, func() { pt.canvas.setTool(FILL) })
 
 }
 
+
 func (pt *Paint) setBackground() {
-	bg := &window.Color{R: 15, G: 15, B: 15}
+	bg := &window.Color{R: 25, G: 25, B: 25}
 	for i := 0; i < int(window.ScreenWidth); i++ {
 		for j := 0; j < int(window.ScreenHeight); j++ {
 			if !pt.canvas.contains(int32(i), int32(j)) {
@@ -56,6 +63,7 @@ func (pt *Paint) setBackground() {
 
 func (pt *Paint) Update() (bool, bool) {
 	Mouse.Update()
+	pt.button.Update()
 	quit := pt.checkKeyPress()
 	update := pt.canvas.Update()
 	return update, quit
