@@ -13,7 +13,7 @@ type Component struct {
 
 // Contains pixel at (x , y) ?
 func (cmpt *Component) contains(x, y int32) bool {
-	if x >= (cmpt.X) && y > (cmpt.Y) && x < (cmpt.X+cmpt.Width) && y < (cmpt.Y+cmpt.Height) {
+	if x >= (cmpt.X) && y >= (cmpt.Y) && x <= (cmpt.X+cmpt.Width) && y <= (cmpt.Y+cmpt.Height) {
 		return true
 	}
 	return false

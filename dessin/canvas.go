@@ -127,7 +127,7 @@ func (cvs *Canvas) setColor(index int) {
 }
 
 func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
-	if x0 >= (cvs.X) && x0 <= (cvs.X)+(cvs.Width) && y0 >= (cvs.Y) && y0 <= (cvs.Y+cvs.Height) {
+	if cvs.contains(x0, y0) {
 		curPixelCLr := window.GetPixelColor(x0, y0)
 		if curPixelCLr.Equals(fillColor) {
 			return
@@ -141,15 +141,23 @@ func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
 		}
 	}
 }
+func (cvs *Canvas) DrawWidth(x, y, width int32, color *window.Color) {
+	halfWidth := width / 2
+	isEven := width%2 == 0
+	offset := int32(0)
 
-func (cvs *Canvas) DrawWidth(x1, y1, width int32, color *window.Color) {
+	if !isEven {
+		offset = 1
+	}
 
-	xstart, xend := int32(math.Max(float64(x1-width), float64(cvs.X))), int32(math.Min(float64(x1+width), float64(cvs.X+cvs.Width)))
-	ystart, yend := int32(math.Max(float64(y1-width), float64(cvs.Y))), int32(math.Min(float64(y1+width), float64(cvs.Y+cvs.Height)))
+	xStart := util.Max32(x-halfWidth, cvs.X)
+	xEnd := util.Min32(x+halfWidth+offset, cvs.X+cvs.Width)
+	yStart := util.Max32(y-halfWidth, cvs.Y)
+	yEnd := util.Min32(y+halfWidth+offset, cvs.Y+cvs.Height)
 
-	for x := xstart; x <= xend; x++ {
-		for y := ystart; y <= yend; y++ {
-			window.SetPixel(x, y, color)
+	for i := xStart; i <= xEnd; i++ {
+		for j := yStart; j <= yEnd; j++ {
+			window.SetPixel(i, j, color)
 		}
 	}
 }
