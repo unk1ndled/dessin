@@ -44,12 +44,16 @@ type Canvas struct {
 
 func NewCanvas(x, y, w, h int32) *Canvas {
 
-	return &Canvas{
+	cvs := &Canvas{
 		Component:   &Component{X: x, Y: y, Width: w, Height: h},
 		buffer:      util.NewDeque[[]byte](),
 		drawColor:   colors[0],
-		currentTool: PEN, lineWidth: 20}
+		currentTool: PEN, lineWidth: 20,
+	}
 
+	DrawRect(x, y, x+w, y+h, &window.Color{R: 0, G: 0, B: 0})
+
+	return cvs
 }
 
 func (cvs *Canvas) Update() bool {

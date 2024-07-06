@@ -37,6 +37,87 @@ func (cmpt *Component) isClicked() bool {
 
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type BarType byte
+
+const (
+	VERTICAL BarType = iota
+	HORIZONTAL
+	GRID
+)
+
+type BtnConfig struct {
+	Color *window.Color
+	Fn    func()
+}
+
+type Bar struct {
+	Component
+	bartype BarType
+
+	buttons []*Button
+
+	inner *Bar
+}
+
+func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*BtnConfig, innerBar ...*Bar) *Bar {
+	tp := &Bar{
+		Component: Component{x, y, w, h},
+		buttons:   make([]*Button, len(btns)),
+		bartype:   btype,
+	}
+	btnx, btny := x+padding, y+padding
+
+	if btype == GRID {
+		btnH = int32(btnH / 2)
+		j := int32(0)
+		for j = 0; j < 2; j++ {
+			btny = btny + j*(btnH+padding)
+			i := int32(0)
+			for i = 0; i < int32(len(btns)/2); i++ {
+				tp.buttons[i] = NewButton(
+					btnx*(i)*(gap+btnW),
+					btny,
+					btnW, btnH,
+					btns[i].Color, btns[i].Fn)
+			}
+		}
+		return tp
+
+	}
+
+	if len(innerBar) != 0 {
+		tp.inner = innerBar[0]
+	}
+
+	i := int32(0)
+	xdir, ydir := int32(1), int32(0)
+	if btype == VERTICAL {
+		xdir = 0
+		ydir = 1
+	}
+	for i = 0; i < int32(len(btns)); i++ {
+		tp.buttons[i] = NewButton(
+			btnx+xdir*(i)*(gap+btnW),
+			btny+ydir*(i)*(gap+btnH),
+			btnW, btnH,
+			btns[i].Color, btns[i].Fn)
+	}
+	return tp
+}
+
+func (bar *Bar) Update() bool {
+	update := false
+	for _, btn := range bar.buttons {
+		update = btn.Update() || update
+	}
+	if bar.inner != nil {
+		bar.inner.Update()
+	}
+	return update
+}
+
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////
 type OnCLick func()
 
