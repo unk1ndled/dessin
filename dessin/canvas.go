@@ -10,14 +10,7 @@ import (
 type Tool byte
 type Operation byte
 
-var (
-	colors = []*window.Color{
-		{100, 10, 180},
-		{106, 90, 205},
-		{0, 255, 0},
-		{139, 0, 0},
-	}
-)
+
 
 const (
 	MAX_BUFFER_LENGTH = 15
@@ -81,15 +74,11 @@ func (cvs *Canvas) Draw() {
 	switch cvs.currOp {
 	case UNDO:
 		cvs.undo()
-		// log.Println("undind")
-
 	case CLICK:
 		switch cvs.currentTool {
 		case FILL:
 			clicked := window.GetPixelColor(Mouse.X, Mouse.Y)
 			cvs.Fill(Mouse.X, Mouse.Y, cvs.drawColor, &clicked)
-			// log.Println("filled")
-
 		}
 	case DRAW:
 		switch cvs.currentTool {
@@ -130,6 +119,7 @@ func (cvs *Canvas) setColor(index int) {
 	cvs.drawColor = colors[index]
 }
 
+//flood fill algo
 func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
 	if cvs.contains(x0, y0) {
 		curPixelCLr := window.GetPixelColor(x0, y0)

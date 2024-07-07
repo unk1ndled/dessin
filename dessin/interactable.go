@@ -1,6 +1,8 @@
 package dessin
 
 import (
+	"log"
+
 	"github.com/unk1ndled/draw/window"
 )
 
@@ -58,10 +60,10 @@ type Bar struct {
 
 	buttons []*Button
 
-	inner *Bar
+	// inner *Bar
 }
 
-func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*BtnConfig, innerBar ...*Bar) *Bar {
+func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*BtnConfig) *Bar {
 	tp := &Bar{
 		Component: Component{x, y, w, h},
 		buttons:   make([]*Button, len(btns)),
@@ -71,25 +73,31 @@ func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*B
 
 	if btype == GRID {
 		btnH = int32(btnH / 2)
+		btnW = int32(btnW / 2)
+
 		j := int32(0)
+		k := 0
 		for j = 0; j < 2; j++ {
-			btny = btny + j*(btnH+padding)
+			btny = btny - padding/2 + j*(btnH+gap)
 			i := int32(0)
 			for i = 0; i < int32(len(btns)/2); i++ {
-				tp.buttons[i] = NewButton(
-					btnx*(i)*(gap+btnW),
+				log.Println(btny)
+
+				tp.buttons[k] = NewButton(
+					btnx+(i)*(gap+btnW),
 					btny,
 					btnW, btnH,
-					btns[i].Color, btns[i].Fn)
+					btns[k].Color, btns[k].Fn)
+				k++
 			}
 		}
+		tp.Width = ((gap + btnW) * int32(len(btns)/2)) + padding
 		return tp
-
 	}
 
-	if len(innerBar) != 0 {
-		tp.inner = innerBar[0]
-	}
+	// if len(innerBar) != 0 {
+	// 	tp.inner = innerBar[0]
+	// }
 
 	i := int32(0)
 	xdir, ydir := int32(1), int32(0)
@@ -104,6 +112,8 @@ func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*B
 			btnW, btnH,
 			btns[i].Color, btns[i].Fn)
 	}
+
+	tp.Width = ((gap + btnW) * int32(len(btns))) + padding
 	return tp
 }
 
@@ -112,9 +122,9 @@ func (bar *Bar) Update() bool {
 	for _, btn := range bar.buttons {
 		update = btn.Update() || update
 	}
-	if bar.inner != nil {
-		bar.inner.Update()
-	}
+	// if bar.inner != nil {
+	// 	bar.inner.Update()
+	// }
 	return update
 }
 

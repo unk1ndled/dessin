@@ -14,13 +14,39 @@ var (
 
 	Z_PREV_PRESS, Z_PRESS = false, false
 	CTRL                  = false
+
+	colors = []*window.Color{
+		{102, 204, 102},
+		{204, 230, 102},
+		{248, 229, 65},
+		{230, 150, 80},
+		{230, 50, 80},
+		///
+		{135, 53, 85},
+		{166, 85, 95},
+		{178, 102, 79},
+		{242, 174, 153},
+		{255, 255, 255},
+		//
+		{102, 178, 255},
+		{102, 102, 255},
+		{153, 102, 255},
+		{131, 77, 196},
+		{125, 45, 160},
+		///
+		{135, 62, 132},
+		{255, 153, 204},
+		{238, 143, 238},
+		{127, 127, 127},
+		{10, 10, 10},
+	}
 )
 
 // implements sdl.Runnable
 // Paint acts as the wrapper struct for the program
 // thus its responsible for the inner components
 type Paint struct {
-	topbar  *Bar
+	topbars []*Bar
 	leftbar *Bar
 
 	canvas *Canvas
@@ -32,20 +58,19 @@ func NewPaint() *Paint {
 func (pt *Paint) Init(pxls []byte) {
 
 	Padding := int32(6)
-
 	BarPadding := Padding / 2
 	TopBarHeight := int32(45)
 	TopBarX := Padding
 	TopBarY := Padding
 	TopBarWidth := window.ScreenWidth - 2*Padding
 
-	ButtonWidth := TopBarHeight + int32(TopBarHeight/3)
+	ButtonWidth := TopBarHeight + int32(TopBarHeight/4)
 	ButtonHeight := TopBarHeight - 2*BarPadding
 	ButtonGap := Padding - 1
 
 	LeftBarX := Padding
 	LeftBarY := TopBarHeight + 2*Padding
-	LeftBarWidth := ButtonWidth + 2*BarPadding
+	LeftBarWidth := ButtonWidth + BarPadding
 	LeftBarHeight := window.ScreenHeight - (2*Padding + TopBarHeight)
 
 	pixels = pxls
@@ -58,32 +83,52 @@ func (pt *Paint) Init(pxls []byte) {
 		window.ScreenWidth-((2*Padding)+LeftBarWidth+10),
 		window.ScreenHeight-((2*Padding)+TopBarHeight+10)) // Corrected from LeftBarHeight to TopBarHeight
 
-	fns := []func(){
-		func() { pt.canvas.setTool(FILL) },
+	options := []func(){
 		func() { pt.canvas.setTool(PEN) },
 		func() { pt.canvas.setTool(ERASER) },
-		func() { pt.canvas.setColor(0) },
-		func() { pt.canvas.setColor(1) },
-		func() { pt.canvas.setColor(2) },
 		func() { pt.canvas.modifyDrawWidth(-1) },
 		func() { pt.canvas.modifyDrawWidth(1) },
 	}
 	btnc := &window.Color{R: 40, G: 40, B: 40}
-	pt.topbar = NewBar(
+	pt.topbars = make([]*Bar, 3)
+	pt.topbars[0] = NewBar(
 		TopBarX, TopBarY, TopBarWidth, TopBarHeight,
 		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, HORIZONTAL,
 		[]*BtnConfig{
-			{Color: btnc, Fn: fns[1]},
-			{Color: btnc, Fn: fns[2]},
-			{Color: btnc, Fn: fns[6]},
-			{Color: btnc, Fn: fns[7]},
+			{Color: btnc, Fn: options[0]},
+			{Color: btnc, Fn: options[1]},
+			{Color: btnc, Fn: options[2]},
+			{Color: btnc, Fn: options[3]},
 		},
 	)
+
+	clrconfig := *(new([]*BtnConfig))
+	for i := 0; i < 20; i++ {
+		//closure stuff with using i inside the functions
+		index := i
+		clrconfig = append(clrconfig, &BtnConfig{Color: colors[i], Fn: func() { pt.canvas.setColor(index) }})
+	}
+
+	pt.topbars[1] = NewBar(
+		pt.topbars[0].X+pt.topbars[0].Width+Padding, TopBarY, TopBarWidth, TopBarHeight,
+		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, GRID,
+		clrconfig,
+	)
+	pt.topbars[2] = NewBar(
+		pt.topbars[1].X+pt.topbars[1].Width+Padding, TopBarY, TopBarWidth, TopBarHeight,
+		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, HORIZONTAL,
+		[]*BtnConfig{
+			{Color: btnc, Fn: options[0]},
+			{Color: btnc, Fn: options[1]}},
+	)
+	tools := []func(){
+		func() { pt.canvas.setTool(FILL) }}
+
 	pt.leftbar = NewBar(
 		LeftBarX, LeftBarY, LeftBarWidth, LeftBarHeight,
 		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, VERTICAL,
 		[]*BtnConfig{
-			{Color: btnc, Fn: fns[0]},
+			{Color: btnc, Fn: tools[0]},
 		},
 	)
 
@@ -97,7 +142,9 @@ func (pt *Paint) setBackground() {
 
 func (pt *Paint) Update() (bool, bool) {
 	Mouse.Update()
-	pt.topbar.Update()
+	pt.topbars[0].Update()
+	pt.topbars[1].Update()
+	pt.topbars[2].Update()
 	pt.leftbar.Update()
 
 	quit := pt.checkKeyPress()
