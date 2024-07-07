@@ -1,8 +1,6 @@
 package dessin
 
 import (
-	"log"
-
 	"github.com/unk1ndled/draw/window"
 )
 
@@ -81,8 +79,6 @@ func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*B
 			btny = btny - padding/2 + j*(btnH+gap)
 			i := int32(0)
 			for i = 0; i < int32(len(btns)/2); i++ {
-				log.Println(btny)
-
 				tp.buttons[k] = NewButton(
 					btnx+(i)*(gap+btnW),
 					btny,
