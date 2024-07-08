@@ -10,11 +10,15 @@ const (
 	ERASER
 	FILL
 	SAVE
+
+	BITMAPWIDTH = 12
 )
 
 type Icon struct {
 	Data   *[]byte
 	IcType IconType
+
+
 }
 
 func NewIcon(tp IconType) *Icon {
@@ -79,7 +83,7 @@ var (
 		0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0,
 		0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
 		0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-		0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	}
 	ERASERICON = []byte{

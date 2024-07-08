@@ -150,7 +150,7 @@ func (pt *Paint) Update() (bool, bool) {
 	pt.topbars[2].Update()
 	pt.leftbar.Update()
 
-	quit := pt.checkKeyPress()
+	quit := pt.checkEvent()
 	update := pt.canvas.Update()
 	return update, quit
 }
@@ -158,38 +158,41 @@ func (pt *Paint) Render() {
 	pt.canvas.Draw()
 }
 
-func (pt *Paint) checkKeyPress() bool {
+func (pt *Paint) checkEvent() bool {
 	for e := sdl.PollEvent(); e != nil; e = sdl.PollEvent() {
 		switch t := e.(type) {
 		case *sdl.QuitEvent:
 			return true
 		case *sdl.KeyboardEvent:
-			switch t.Type {
-			case sdl.KEYDOWN:
-				switch t.Keysym.Scancode {
-				case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
-					CTRL = true
-				case sdl.SCANCODE_Z:
-					Z_PREV_PRESS = Z_PRESS
-					Z_PRESS = true
-				case sdl.SCANCODE_F:
-					pt.canvas.setTool(FILL)
-				case sdl.SCANCODE_D:
-					pt.canvas.setTool(PEN)
-				case sdl.SCANCODE_E:
-					pt.canvas.setTool(ERASER)
-				}
-
-			case sdl.KEYUP:
-				switch t.Keysym.Scancode {
-				case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
-					CTRL = false
-				case sdl.SCANCODE_Z:
-					Z_PREV_PRESS = Z_PRESS
-					Z_PRESS = false
-				}
-			}
+			pt.HandleKeyBoard(t)
 		}
 	}
 	return false
+}
+
+func (pt *Paint) HandleKeyBoard(t *sdl.KeyboardEvent) {
+	switch t.Type {
+	case sdl.KEYDOWN:
+		switch t.Keysym.Scancode {
+		case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
+			CTRL = true
+		case sdl.SCANCODE_Z:
+			Z_PREV_PRESS = Z_PRESS
+			Z_PRESS = true
+		case sdl.SCANCODE_F:
+			pt.canvas.setTool(FILL)
+		case sdl.SCANCODE_D:
+			pt.canvas.setTool(PEN)
+		case sdl.SCANCODE_E:
+			pt.canvas.setTool(ERASER)
+		}
+	case sdl.KEYUP:
+		switch t.Keysym.Scancode {
+		case sdl.SCANCODE_LCTRL, sdl.SCANCODE_RCTRL:
+			CTRL = false
+		case sdl.SCANCODE_Z:
+			Z_PREV_PRESS = Z_PRESS
+			Z_PRESS = false
+		}
+	}
 }

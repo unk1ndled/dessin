@@ -258,13 +258,13 @@ func (btn *Button) ResetVisuals() {
 
 func (btn *Button) DrawIcon(clr *window.Color) {
 	if btn.icon != nil {
-		scale := int32((btn.Height / 12))
-		iconw := scale * 12
+		scale := int32((btn.Height / icons.BITMAPWIDTH))
+		iconw := scale * icons.BITMAPWIDTH
 		iconX, iconY := 1+btn.X+(btn.Width-iconw)/2, 1+btn.Y+(btn.Height-iconw)/2
 
 		for i := int32(1); i < int32(len(*btn.icon.Data)-1); i++ {
 			if (*btn.icon.Data)[i] == 1 {
-				ix, iy := scale*(i%12), scale*(i/12)
+				ix, iy := scale*(i%icons.BITMAPWIDTH), scale*(i/icons.BITMAPWIDTH)
 				for j := int32(0); j < scale; j++ {
 					for k := int32(0); k < scale; k++ {
 						window.SetPixel(iconX+ix+j, iconY+iy+k, clr)
