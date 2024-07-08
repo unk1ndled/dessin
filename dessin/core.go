@@ -121,7 +121,7 @@ func (pt *Paint) Init(pxls []byte) {
 		pt.topbars[1].X+pt.topbars[1].Width+Padding, TopBarY, TopBarWidth, TopBarHeight,
 		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, HORIZONTAL,
 		[]*BtnConfig{
-			{Color: btnc, Fn: options[0], ButtonIcon: icons.SAVE},
+			{Color: btnc, Fn: options[0], ButtonIcon: icons.OPENFILE},
 			{Color: btnc, Fn: options[1], ButtonIcon: icons.SAVE}},
 	)
 	tools := []func(){
