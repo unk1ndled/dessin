@@ -2,6 +2,9 @@ package window
 
 import (
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"os"
 	"unsafe"
 
@@ -13,6 +16,8 @@ var (
 	ScreenWidth  int32
 	ScreenHeight int32
 	pixels       []byte
+
+	tex *sdl.Texture
 )
 
 func GetPixelsIndex(x, y int32) int32 {
@@ -74,7 +79,7 @@ func Visualise(name string, w, h int32, app Runnable) {
 	// Set the window icon
 	window.SetIcon(icon)
 
-	tex, err := renderer.CreateTexture(sdl.PIXELFORMAT_ABGR8888, sdl.TEXTUREACCESS_STREAMING, ScreenWidth, ScreenHeight)
+	tex, err = renderer.CreateTexture(sdl.PIXELFORMAT_ABGR8888, sdl.TEXTUREACCESS_STREAMING, ScreenWidth, ScreenHeight)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create texture: %s\n", err)
 		os.Exit(5)
@@ -95,7 +100,47 @@ func Visualise(name string, w, h int32, app Runnable) {
 		renderer.Clear()
 		renderer.Copy(tex, nil, nil)
 		renderer.Present()
-
 		//sdl.Delay(16)
 	}
+}
+
+func SaveTextureAsImage(x, y, w, h int32, filename string) {
+	// _, _, width, _, _ := tex.Query()
+
+	// var _, rmask, gmask, bmask, amask, _ = sdl.PixelFormatEnumToMasks(sdl.PIXELFORMAT_ABGR8888)
+	// surface, err := sdl.CreateRGBSurfaceFrom(
+	// 	unsafe.Pointer(&pixels[0]), width, height, 32, int(width*4), rmask, gmask, bmask, amask)
+	// if err != nil {
+	// 	log.Fatalf("Failed to create surface: %s\n", err)
+	// }
+	// defer surface.Free()
+
+	SavePNG(x, y, w, h, ScreenWidth*4, filename+".png")
+
+}
+
+func SavePNG(xOffset, yOffset, w, h, pitch int32, file string) error {
+
+	imag := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
+
+	for y := int32(0); y < h; y++ {
+		for x := int32(0); x < w; x++ {
+			index := (y+yOffset)*pitch + (x+xOffset)*4
+			r := pixels[index]
+			g := pixels[index+1]
+			b := pixels[index+2]
+			imag.SetRGBA(int(x), int(y), color.RGBA{R: r, G: g, B: b, A: 255})
+		}
+	}
+	f, err := os.Create(file)
+	if err != nil {
+		return fmt.Errorf("could not create file: %v", err)
+	}
+	defer f.Close()
+
+	if err := png.Encode(f, imag); err != nil {
+		return fmt.Errorf("could not encode PNG: %v", err)
+	}
+
+	return nil
 }
