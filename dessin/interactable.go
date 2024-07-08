@@ -1,6 +1,7 @@
 package dessin
 
 import (
+	"github.com/unk1ndled/draw/icons"
 	"github.com/unk1ndled/draw/window"
 )
 
@@ -48,8 +49,9 @@ const (
 )
 
 type BtnConfig struct {
-	Color *window.Color
-	Fn    func()
+	Color      *window.Color
+	Fn         func()
+	ButtonIcon icons.IconType
 }
 
 type Bar struct {
@@ -101,12 +103,18 @@ func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*B
 		xdir = 0
 		ydir = 1
 	}
+
 	for i = 0; i < int32(len(btns)); i++ {
+		var ic *icons.Icon
+		if btns[i].ButtonIcon != icons.NONE {
+			ic = icons.NewIcon(btns[i].ButtonIcon)
+		}
 		tp.buttons[i] = NewButton(
 			btnx+xdir*(i)*(gap+btnW),
 			btny+ydir*(i)*(gap+btnH),
 			btnW, btnH,
-			btns[i].Color, btns[i].Fn)
+			btns[i].Color, btns[i].Fn, ic)
+
 	}
 
 	tp.Width = ((gap + btnW) * int32(len(btns))) + padding
@@ -125,6 +133,7 @@ func (bar *Bar) Update() bool {
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 type OnCLick func()
 
 const (
@@ -132,10 +141,11 @@ const (
 )
 
 type Button struct {
-	Component
+	*Component
 	OnCLick
 
 	mouseEnter bool
+	icon       *icons.Icon
 
 	baseColor *window.Color
 	light     *window.Color
@@ -143,15 +153,17 @@ type Button struct {
 	dark      *window.Color
 }
 
-func NewButton(x0, y0, width, height int32, btnclr *window.Color, fn OnCLick) *Button {
+func NewButton(x0, y0, width, height int32, btnclr *window.Color, fn OnCLick, icons ...*icons.Icon) *Button {
 	btn := &Button{
-		Component: Component{x0, y0, width, height},
+		Component: &Component{x0, y0, width, height},
 		OnCLick:   fn,
-
 		baseColor: btnclr,
 		verylight: btnclr.Lighter(50),
 		light:     btnclr.Lighter(15),
 		dark:      btnclr.Darker(20),
+	}
+	if len(icons) != 0 {
+		btn.icon = icons[0]
 	}
 	btn.Init()
 	return btn
@@ -218,6 +230,10 @@ func (btn *Button) clickVisuals() {
 	//center
 	DrawRect(btn.X+BtnBorder, btn.Y+BtnBorder, btn.X+btn.Width-BtnBorder, btn.Y+btn.Height-BtnBorder, btn.dark)
 
+	if btn.icon != nil {
+		btn.DrawIcon(btn.baseColor)
+	}
+
 }
 
 func (btn *Button) ResetVisuals() {
@@ -234,4 +250,27 @@ func (btn *Button) ResetVisuals() {
 	//center
 	DrawRect(btn.X+BtnBorder, btn.Y+BtnBorder, btn.X+btn.Width-BtnBorder, btn.Y+btn.Height-BtnBorder, btn.baseColor)
 
+	if btn.icon != nil {
+		btn.DrawIcon(btn.verylight)
+	}
+
+}
+
+func (btn *Button) DrawIcon(clr *window.Color) {
+	if btn.icon != nil {
+		scale := int32((btn.Height / 12))
+		iconw := scale * 12
+		iconX, iconY := 1+btn.X+(btn.Width-iconw)/2, 1+btn.Y+(btn.Height-iconw)/2
+
+		for i := int32(1); i < int32(len(*btn.icon.Data)-1); i++ {
+			if (*btn.icon.Data)[i] == 1 {
+				ix, iy := scale*(i%12), scale*(i/12)
+				for j := int32(0); j < scale; j++ {
+					for k := int32(0); k < scale; k++ {
+						window.SetPixel(iconX+ix+j, iconY+iy+k, clr)
+					}
+				}
+			}
+		}
+	}
 }

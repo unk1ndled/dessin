@@ -1,6 +1,7 @@
 package dessin
 
 import (
+	"github.com/unk1ndled/draw/icons"
 	"github.com/unk1ndled/draw/mouse"
 	"github.com/unk1ndled/draw/window"
 	"github.com/veandco/go-sdl2/sdl"
@@ -17,10 +18,10 @@ var (
 
 	colors = []*window.Color{
 
-		{58, 135, 47},
-		{102, 204, 102},
-		{204, 230, 102},
-		{248, 229, 65},
+		{R: 58, G: 135, B: 47},
+		{R: 102, G: 204, B: 102},
+		{R: 204, G: 230, B: 102},
+		{R: 248, G: 229, B: 65},
 		{230, 150, 80},
 		///
 		{230, 50, 80},
@@ -97,10 +98,10 @@ func (pt *Paint) Init(pxls []byte) {
 		TopBarX, TopBarY, TopBarWidth, TopBarHeight,
 		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, HORIZONTAL,
 		[]*BtnConfig{
-			{Color: btnc, Fn: options[0]},
-			{Color: btnc, Fn: options[1]},
-			{Color: btnc, Fn: options[2]},
-			{Color: btnc, Fn: options[3]},
+			{Color: btnc, Fn: options[0], ButtonIcon: icons.PEN},
+			{Color: btnc, Fn: options[1], ButtonIcon: icons.ERASER},
+			{Color: btnc, Fn: options[2], ButtonIcon: icons.DECREASE},
+			{Color: btnc, Fn: options[3], ButtonIcon: icons.INCREASE},
 		},
 	)
 
@@ -120,8 +121,8 @@ func (pt *Paint) Init(pxls []byte) {
 		pt.topbars[1].X+pt.topbars[1].Width+Padding, TopBarY, TopBarWidth, TopBarHeight,
 		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, HORIZONTAL,
 		[]*BtnConfig{
-			{Color: btnc, Fn: options[0]},
-			{Color: btnc, Fn: options[1]}},
+			{Color: btnc, Fn: options[0], ButtonIcon: icons.SAVE},
+			{Color: btnc, Fn: options[1], ButtonIcon: icons.SAVE}},
 	)
 	tools := []func(){
 		func() { pt.canvas.setTool(FILL) }}
@@ -130,7 +131,7 @@ func (pt *Paint) Init(pxls []byte) {
 		LeftBarX, LeftBarY, LeftBarWidth, LeftBarHeight,
 		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, VERTICAL,
 		[]*BtnConfig{
-			{Color: btnc, Fn: tools[0]},
+			{Color: btnc, Fn: tools[0], ButtonIcon: icons.FILL},
 		},
 	)
 
