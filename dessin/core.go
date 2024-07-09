@@ -122,7 +122,9 @@ func (pt *Paint) Init(pxls []byte) {
 		pt.topbars[1].X+pt.topbars[1].Width+Padding, TopBarY, TopBarWidth, TopBarHeight,
 		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, HORIZONTAL,
 		[]*BtnConfig{
-			{Color: btnc, Fn: options[0], ButtonIcon: icons.OPENFILE},
+			{Color: btnc, Fn: func() {
+				window.OpenPNG(pt.canvas.X, pt.canvas.Y, pt.canvas.Width, pt.canvas.Height)
+			}, ButtonIcon: icons.OPENFILE},
 			{Color: btnc, Fn: func() {
 				window.SaveTextureAsImage(pt.canvas.X, pt.canvas.Y, pt.canvas.Width, pt.canvas.Height, "drawing")
 			}, ButtonIcon: icons.SAVE}},

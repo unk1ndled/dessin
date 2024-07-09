@@ -145,7 +145,9 @@ type Button struct {
 	OnCLick
 
 	mouseEnter bool
-	icon       *icons.Icon
+	mouseClick bool
+
+	icon *icons.Icon
 
 	baseColor *window.Color
 	light     *window.Color
@@ -199,21 +201,6 @@ func (btn *Button) Update() bool {
 		}
 	}
 	return false
-
-	// if btn.isHovered() && !Mouse.LeftButton {
-	// 	btn.mouseEnter = true
-	// } else if !btn.isHovered() && btn.mouseEnter {
-	// 	btn.mouseEnter = false
-	// }
-	// if btn.isPressed() && btn.mouseEnter {
-	// 	btn.clickVisuals()
-	// 	return true
-	// } else if btn.wasPressed() {
-	// 	btn.OnCLick()
-	// 	btn.ResetVisuals()
-	// 	return true
-
-	// }
 }
 
 func (btn *Button) clickVisuals() {

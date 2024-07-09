@@ -5,11 +5,15 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"log"
 	"os"
 	"unsafe"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+
+	"github.com/harry1453/go-common-file-dialog/cfd"
+	"github.com/harry1453/go-common-file-dialog/cfdutil"
 )
 
 var (
@@ -105,24 +109,14 @@ func Visualise(name string, w, h int32, app Runnable) {
 }
 
 func SaveTextureAsImage(x, y, w, h int32, filename string) {
-	// _, _, width, _, _ := tex.Query()
-
-	// var _, rmask, gmask, bmask, amask, _ = sdl.PixelFormatEnumToMasks(sdl.PIXELFORMAT_ABGR8888)
-	// surface, err := sdl.CreateRGBSurfaceFrom(
-	// 	unsafe.Pointer(&pixels[0]), width, height, 32, int(width*4), rmask, gmask, bmask, amask)
-	// if err != nil {
-	// 	log.Fatalf("Failed to create surface: %s\n", err)
-	// }
-	// defer surface.Free()
+	//TODO : implement text input
 
 	SavePNG(x, y, w, h, ScreenWidth*4, filename+".png")
 
 }
 
 func SavePNG(xOffset, yOffset, w, h, pitch int32, file string) error {
-
 	imag := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
-
 	for y := int32(0); y < h; y++ {
 		for x := int32(0); x < w; x++ {
 			index := (y+yOffset)*pitch + (x+xOffset)*4
@@ -137,10 +131,60 @@ func SavePNG(xOffset, yOffset, w, h, pitch int32, file string) error {
 		return fmt.Errorf("could not create file: %v", err)
 	}
 	defer f.Close()
-
 	if err := png.Encode(f, imag); err != nil {
 		return fmt.Errorf("could not encode PNG: %v", err)
 	}
+	return nil
+}
 
+func OpenPNG(xOffset, yOffset, canvasW, canvasH int32) error {
+
+	filename, err := cfdutil.ShowOpenFileDialog(cfd.DialogConfig{
+		Title: "Open A File",
+		Role:  "OpenFileExample",
+		FileFilters: []cfd.FileFilter{
+			{
+				DisplayName: "Text Files (*.txt)",
+				Pattern:     "*.txt",
+			},
+			{
+				DisplayName: "Image Files (*.jpg, *.png)",
+				Pattern:     "*.jpg;*.png",
+			},
+			{
+				DisplayName: "All Files (*.*)",
+				Pattern:     "*.*",
+			},
+		},
+		SelectedFileFilterIndex: 2,
+		FileName:                "file.txt",
+		DefaultExtension:        "txt",
+	})
+	if err == cfd.ErrorCancelled {
+		log.Fatal("Dialog was cancelled by the user.")
+	} else if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Chosen file: %s\n", filename)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("could not open file: %v", err)
+	}
+
+	img, tp, err := image.Decode(file)
+	log.Println(tp)
+	if err != nil {
+		return fmt.Errorf("could not decode file: %v", err)
+	}
+
+	for y := int32(0); y < (canvasH); y++ {
+		for x := int32(0); x < (canvasW); x++ {
+			
+			r, g, b, _ := img.At(int(x), int(y)).RGBA()
+			SetPixel(x+xOffset, y+yOffset, &Color{byte(r), byte(g), byte(b)})
+		}
+
+	}
 	return nil
 }
