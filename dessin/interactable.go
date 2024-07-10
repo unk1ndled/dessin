@@ -57,10 +57,7 @@ type BtnConfig struct {
 type Bar struct {
 	Component
 	bartype BarType
-
 	buttons []*Button
-
-	// inner *Bar
 }
 
 func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*BtnConfig) *Bar {
@@ -70,11 +67,9 @@ func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*B
 		bartype:   btype,
 	}
 	btnx, btny := x+padding, y+padding
-
 	if btype == GRID {
 		btnH = int32(btnH / 2)
 		btnW = int32(btnW / 2)
-
 		j := int32(0)
 		k := 0
 		for j = 0; j < 2; j++ {
@@ -92,11 +87,6 @@ func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*B
 		tp.Width = ((gap + btnW) * int32(len(btns)/2)) + padding
 		return tp
 	}
-
-	// if len(innerBar) != 0 {
-	// 	tp.inner = innerBar[0]
-	// }
-
 	i := int32(0)
 	xdir, ydir := int32(1), int32(0)
 	if btype == VERTICAL {
@@ -114,7 +104,6 @@ func NewBar(x, y, w, h, btnW, btnH, gap, padding int32, btype BarType, btns []*B
 			btny+ydir*(i)*(gap+btnH),
 			btnW, btnH,
 			btns[i].Color, btns[i].Fn, ic)
-
 	}
 
 	tp.Width = ((gap + btnW) * int32(len(btns))) + padding
@@ -187,17 +176,20 @@ func (btn *Button) Update() bool {
 				// log.Println("clicked")
 				return true
 			}
-		} else if btn.mouseEnter {
-			btn.clickVisuals()
+		} else
+		// leftclick and hover
+		if btn.mouseEnter {
+			if !btn.wasPressed() {
+				btn.clickVisuals()
+				// log.Println("painted")
+				return true
+			}
 			// log.Println("pressing")
-			return true
 		}
 	} else {
 		if btn.mouseEnter {
 			// log.Println("exited")
-			btn.ResetVisuals()
 			btn.mouseEnter = false
-			return true
 		}
 	}
 	return false
