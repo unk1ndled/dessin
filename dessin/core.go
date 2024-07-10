@@ -144,23 +144,22 @@ func (pt *Paint) Init(pxls []byte) {
 
 func (pt *Paint) setBackground() {
 	bg := &window.Color{R: 25, G: 25, B: 25}
-	DrawRect(0, 0, window.ScreenWidth, window.ScreenHeight, bg)
+	RenderRect(0, 0, window.ScreenWidth, window.ScreenHeight, bg)
 
 }
 
 func (pt *Paint) Update() (bool, bool) {
 	Mouse.Update()
-	pt.topbars[0].Update()
-	pt.topbars[1].Update()
-	pt.topbars[2].Update()
-	pt.leftbar.Update()
-
+	update := pt.topbars[0].Update()
+	update = update || pt.topbars[1].Update()
+	update = update || pt.topbars[2].Update()
+	update = update || pt.leftbar.Update()
+	update = update || pt.canvas.Update()
 	quit := pt.checkEvent()
-	update := pt.canvas.Update()
 	return update, quit
 }
 func (pt *Paint) Render() {
-	pt.canvas.Draw()
+	pt.canvas.Render()
 }
 
 func (pt *Paint) checkEvent() bool {

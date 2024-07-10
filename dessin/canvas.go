@@ -10,16 +10,15 @@ import (
 type Tool byte
 type Operation byte
 
-
-
 const (
 	MAX_BUFFER_LENGTH = 15
 
-	PEN = iota
+	PEN Tool = iota
 	ERASER
 	FILL
+	LINE
 
-	UNDO = iota
+	UNDO Operation = iota
 	DRAW
 	CLICK
 )
@@ -27,6 +26,8 @@ const (
 type Canvas struct {
 	*Component
 	buffer *util.Deque[[]byte]
+
+	prevCLickX, prevCLickY int32
 
 	currentTool Tool
 	drawColor   *window.Color
@@ -44,13 +45,13 @@ func NewCanvas(x, y, w, h int32) *Canvas {
 		currentTool: PEN, lineWidth: 20,
 	}
 
-	DrawRect(x, y, x+w, y+h, &window.Color{R: 0, G: 0, B: 0})
+	RenderRect(x, y, x+w, y+h, &window.Color{R: 0, G: 0, B: 0})
 
 	return cvs
 }
 
 func (cvs *Canvas) Update() bool {
-
+	
 	if CTRL && !Z_PRESS && Z_PREV_PRESS {
 		Z_PREV_PRESS = false
 		cvs.currOp = UNDO
@@ -65,12 +66,11 @@ func (cvs *Canvas) Update() bool {
 		cvs.currOp = CLICK
 		return true
 	}
-
 	return false
 }
 
-func (cvs *Canvas) Draw() {
-
+// is called if Update is true
+func (cvs *Canvas) Render() {
 	switch cvs.currOp {
 	case UNDO:
 		cvs.undo()
@@ -83,14 +83,14 @@ func (cvs *Canvas) Draw() {
 	case DRAW:
 		switch cvs.currentTool {
 		case PEN:
-			DrawLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, cvs.drawColor, cvs.DrawWidth)
+			RenderLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, cvs.drawColor, cvs.DrawWidth)
 		case ERASER:
 			cvs.Erase(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y)
 		}
-
 	}
 }
 
+// this function is called before a pixels state mutation occurs to save the prev state
 func (cvs *Canvas) updateBuffer() {
 	if cvs.buffer.Size() == MAX_BUFFER_LENGTH {
 		cvs.buffer.PopFront()
@@ -106,6 +106,7 @@ func (cvs *Canvas) undo() {
 	}
 }
 
+// sets current tool
 func (cvs *Canvas) setTool(t Tool) {
 	cvs.currentTool = t
 }
@@ -115,11 +116,12 @@ func (cvs *Canvas) modifyDrawWidth(factor int32) {
 	cvs.lineWidth = int32(math.Max(0, float64(cvs.lineWidth)))
 }
 
+// sets draw color
 func (cvs *Canvas) setColor(index int) {
 	cvs.drawColor = colors[index]
 }
 
-//flood fill algo
+// flood fill algo
 func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
 	if cvs.contains(x0, y0) {
 		curPixelCLr := window.GetPixelColor(x0, y0)
@@ -135,6 +137,8 @@ func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
 		}
 	}
 }
+
+// controls line drawing width
 func (cvs *Canvas) DrawWidth(x, y, width int32, color *window.Color) {
 	halfWidth := width / 2
 	isEven := width%2 == 0
@@ -157,5 +161,5 @@ func (cvs *Canvas) DrawWidth(x, y, width int32, color *window.Color) {
 }
 
 func (cvs *Canvas) Erase(x0, y0, x1, y1 int32) {
-	DrawLine(x0, y0, x1, y1, cvs.lineWidth, &basecolor, cvs.DrawWidth)
+	RenderLine(x0, y0, x1, y1, cvs.lineWidth, &basecolor, cvs.DrawWidth)
 }

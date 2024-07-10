@@ -93,18 +93,29 @@ func Visualise(name string, w, h int32, app Runnable) {
 	pixels = make([]byte, ScreenHeight*ScreenWidth*4)
 
 	app.Init(pixels)
+	app.Render()
+	tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
+	renderer.Clear()
+	renderer.Copy(tex, nil, nil)
+	renderer.Present()
+
+	
 	quit := false
 	update := false
 	for !quit {
 		update, quit = app.Update()
 		if update {
 			app.Render()
+			tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
+			renderer.Clear()
+			renderer.Copy(tex, nil, nil)
+			renderer.Present()
+			sdl.Delay(5)
+			continue
 		}
-		tex.Update(nil, unsafe.Pointer(&pixels[0]), 4*int(ScreenWidth))
-		renderer.Clear()
-		renderer.Copy(tex, nil, nil)
 		renderer.Present()
-		//sdl.Delay(16)
+		// apparantly the delay really deceases cpu usage
+		sdl.Delay(16)
 	}
 }
 
@@ -161,7 +172,8 @@ func OpenPNG(xOffset, yOffset, canvasW, canvasH int32) error {
 		DefaultExtension:        "txt",
 	})
 	if err == cfd.ErrorCancelled {
-		log.Fatal("Dialog was cancelled by the user.")
+		log.Println("Dialog was cancelled by the user.")
+		return nil
 	} else if err != nil {
 		log.Fatal(err)
 	}
@@ -180,7 +192,7 @@ func OpenPNG(xOffset, yOffset, canvasW, canvasH int32) error {
 
 	for y := int32(0); y < (canvasH); y++ {
 		for x := int32(0); x < (canvasW); x++ {
-			
+
 			r, g, b, _ := img.At(int(x), int(y)).RGBA()
 			SetPixel(x+xOffset, y+yOffset, &Color{byte(r), byte(g), byte(b)})
 		}

@@ -134,9 +134,7 @@ type Button struct {
 	OnCLick
 
 	mouseEnter bool
-	mouseClick bool
-
-	icon *icons.Icon
+	icon       *icons.Icon
 
 	baseColor *window.Color
 	light     *window.Color
@@ -188,7 +186,7 @@ func (btn *Button) Update() bool {
 		}
 	} else {
 		if btn.mouseEnter {
-			// log.Println("exited")
+			btn.ResetVisuals()
 			btn.mouseEnter = false
 		}
 	}
@@ -196,43 +194,30 @@ func (btn *Button) Update() bool {
 }
 
 func (btn *Button) clickVisuals() {
-	//left
-	DrawRect(btn.X, btn.Y, btn.X+BtnBorder, btn.Y+btn.Height, btn.baseColor)
-	//right
-	DrawRect(btn.X+btn.Width-BtnBorder, btn.Y, btn.X+btn.Width, btn.Y+btn.Height, btn.baseColor)
-
-	//top
-	DrawRect(btn.X+BtnBorder, btn.Y, btn.X+btn.Width-BtnBorder, btn.Y+BtnBorder, btn.baseColor)
-	//bot
-	DrawRect(btn.X+BtnBorder, btn.Y+btn.Height-BtnBorder, btn.X+btn.Width-BtnBorder, btn.Y+btn.Height, btn.baseColor)
-
-	//center
-	DrawRect(btn.X+BtnBorder, btn.Y+BtnBorder, btn.X+btn.Width-BtnBorder, btn.Y+btn.Height-BtnBorder, btn.dark)
-
-	if btn.icon != nil {
-		btn.DrawIcon(btn.baseColor)
-	}
-
+	btn.Render(btn.dark, btn.baseColor, btn.light)
 }
 
 func (btn *Button) ResetVisuals() {
+	btn.Render(btn.baseColor, btn.light, btn.verylight)
+}
+
+func (btn *Button) Render(dark, base, light *window.Color) {
 	//left
-	DrawRect(btn.X, btn.Y, btn.X+BtnBorder, btn.Y+btn.Height, btn.verylight)
+	RenderRect(btn.X, btn.Y, btn.X+BtnBorder, btn.Y+btn.Height, light)
 	//right
-	DrawRect(btn.X+btn.Width-BtnBorder, btn.Y, btn.X+btn.Width, btn.Y+btn.Height, btn.light)
+	RenderRect(btn.X+btn.Width-BtnBorder, btn.Y, btn.X+btn.Width, btn.Y+btn.Height, base)
 
 	//top
-	DrawRect(btn.X+BtnBorder, btn.Y, btn.X+btn.Width-BtnBorder, btn.Y+BtnBorder, btn.verylight)
+	RenderRect(btn.X+BtnBorder, btn.Y, btn.X+btn.Width-BtnBorder, btn.Y+BtnBorder, light)
 	//bot
-	DrawRect(btn.X+BtnBorder, btn.Y+btn.Height-BtnBorder, btn.X+btn.Width-BtnBorder, btn.Y+btn.Height, btn.light)
+	RenderRect(btn.X+BtnBorder, btn.Y+btn.Height-BtnBorder, btn.X+btn.Width-BtnBorder, btn.Y+btn.Height, base)
 
 	//center
-	DrawRect(btn.X+BtnBorder, btn.Y+BtnBorder, btn.X+btn.Width-BtnBorder, btn.Y+btn.Height-BtnBorder, btn.baseColor)
+	RenderRect(btn.X+BtnBorder, btn.Y+BtnBorder, btn.X+btn.Width-BtnBorder, btn.Y+btn.Height-BtnBorder, dark)
 
 	if btn.icon != nil {
-		btn.DrawIcon(btn.verylight)
+		btn.DrawIcon(light)
 	}
-
 }
 
 func (btn *Button) DrawIcon(clr *window.Color) {
