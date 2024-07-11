@@ -9,9 +9,21 @@ import (
 
 type Tool byte
 type Operation byte
+type Mode byte
+
+var (
+	CanvasX int32
+	CanvasY int32
+	CanvasW int32
+	CanvasH int32
+)
 
 const (
 	MAX_BUFFER_LENGTH = 15
+
+	NONE     byte = iota
+	DRAWMODE Mode = iota
+	SHAPEMODE
 
 	PEN Tool = iota
 	ERASER
@@ -19,15 +31,17 @@ const (
 	LINE
 
 	UNDO Operation = iota
-	DRAW
+	DRAG
 	CLICK
 )
 
 type Canvas struct {
 	*Component
-	buffer *util.Deque[[]byte]
-
+	Mode
+	ShapeType
 	prevCLickX, prevCLickY int32
+
+	buffer *util.Deque[[]byte]
 
 	currentTool Tool
 	drawColor   *window.Color
@@ -37,6 +51,11 @@ type Canvas struct {
 }
 
 func NewCanvas(x, y, w, h int32) *Canvas {
+
+	CanvasX = x
+	CanvasY = y
+	CanvasW = w
+	CanvasH = h
 
 	cvs := &Canvas{
 		Component:   &Component{X: x, Y: y, Width: w, Height: h},
@@ -51,7 +70,7 @@ func NewCanvas(x, y, w, h int32) *Canvas {
 }
 
 func (cvs *Canvas) Update() bool {
-	
+
 	if CTRL && !Z_PRESS && Z_PREV_PRESS {
 		Z_PREV_PRESS = false
 		cvs.currOp = UNDO
@@ -60,34 +79,53 @@ func (cvs *Canvas) Update() bool {
 		if !Mouse.PrevLeftButton {
 			cvs.updateBuffer()
 		}
-		cvs.currOp = DRAW
+		cvs.currOp = DRAG
 		return true
 	} else if cvs.isClicked() {
 		cvs.currOp = CLICK
 		return true
 	}
+	if cvs.isPressed() {
+		if !Mouse.PrevLeftButton {
+			cvs.updateBuffer()
+		}
+		cvs.currOp = DRAG
+		return true
+	} else if cvs.isClicked() {
+		cvs.currOp = CLICK
+		return true
+	}
+
 	return false
 }
 
 // is called if Update is true
 func (cvs *Canvas) Render() {
-	switch cvs.currOp {
-	case UNDO:
-		cvs.undo()
-	case CLICK:
-		switch cvs.currentTool {
-		case FILL:
-			clicked := window.GetPixelColor(Mouse.X, Mouse.Y)
-			cvs.Fill(Mouse.X, Mouse.Y, cvs.drawColor, &clicked)
+
+	switch cvs.Mode {
+	case DRAWMODE:
+		switch cvs.currOp {
+		case UNDO:
+			cvs.undo()
+			cvs.currOp = Operation(NONE)
+		case CLICK:
+			switch cvs.currentTool {
+			case FILL:
+				clicked := window.GetPixelColor(Mouse.X, Mouse.Y)
+				cvs.Fill(Mouse.X, Mouse.Y, cvs.drawColor, &clicked)
+			}
+		case DRAG:
+			switch cvs.currentTool {
+			case PEN:
+				RenderLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, cvs.drawColor, DrawWidth)
+			case ERASER:
+				cvs.Erase(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y)
+			}
 		}
-	case DRAW:
-		switch cvs.currentTool {
-		case PEN:
-			RenderLine(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y, cvs.lineWidth, cvs.drawColor, cvs.DrawWidth)
-		case ERASER:
-			cvs.Erase(Mouse.PrevX, Mouse.PrevY, Mouse.X, Mouse.Y)
-		}
+	case SHAPEMODE:
+		// todo
 	}
+
 }
 
 // this function is called before a pixels state mutation occurs to save the prev state
@@ -109,6 +147,12 @@ func (cvs *Canvas) undo() {
 // sets current tool
 func (cvs *Canvas) setTool(t Tool) {
 	cvs.currentTool = t
+	cvs.Mode = DRAWMODE
+}
+
+func (cvs *Canvas) setShape(t ShapeType) {
+	cvs.ShapeType = t
+	cvs.Mode = SHAPEMODE
 }
 
 func (cvs *Canvas) modifyDrawWidth(factor int32) {
@@ -139,7 +183,7 @@ func (cvs *Canvas) Fill(x0, y0 int32, fillColor, clickedColor *window.Color) {
 }
 
 // controls line drawing width
-func (cvs *Canvas) DrawWidth(x, y, width int32, color *window.Color) {
+func DrawWidth(x, y, width int32, color *window.Color) {
 	halfWidth := width / 2
 	isEven := width%2 == 0
 	offset := int32(0)
@@ -148,10 +192,10 @@ func (cvs *Canvas) DrawWidth(x, y, width int32, color *window.Color) {
 		offset = 1
 	}
 
-	xStart := util.Max32(x-halfWidth, cvs.X)
-	xEnd := util.Min32(x+halfWidth+offset, cvs.X+cvs.Width)
-	yStart := util.Max32(y-halfWidth, cvs.Y)
-	yEnd := util.Min32(y+halfWidth+offset, cvs.Y+cvs.Height)
+	xStart := util.Max32(x-halfWidth, CanvasX)
+	xEnd := util.Min32(x+halfWidth+offset, CanvasX+CanvasW)
+	yStart := util.Max32(y-halfWidth, CanvasY)
+	yEnd := util.Min32(y+halfWidth+offset, CanvasY+CanvasH)
 
 	for i := xStart; i <= xEnd; i++ {
 		for j := yStart; j <= yEnd; j++ {
@@ -161,5 +205,5 @@ func (cvs *Canvas) DrawWidth(x, y, width int32, color *window.Color) {
 }
 
 func (cvs *Canvas) Erase(x0, y0, x1, y1 int32) {
-	RenderLine(x0, y0, x1, y1, cvs.lineWidth, &basecolor, cvs.DrawWidth)
+	RenderLine(x0, y0, x1, y1, cvs.lineWidth, &basecolor, DrawWidth)
 }

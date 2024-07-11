@@ -130,7 +130,10 @@ func (pt *Paint) Init(pxls []byte) {
 			}, ButtonIcon: icons.SAVE}},
 	)
 	tools := []func(){
-		func() { pt.canvas.setTool(FILL) }}
+		func() { pt.canvas.setTool(FILL) },
+		func() { pt.canvas.setTool(FILL) },
+		func() { pt.canvas.setTool(FILL) },
+	}
 
 	pt.leftbar = NewBar(
 		LeftBarX, LeftBarY, LeftBarWidth, LeftBarHeight,
