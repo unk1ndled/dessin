@@ -129,7 +129,7 @@ func (bar *Bar) Update() bool {
 type OnCLick func()
 
 const (
-	BtnBorder = 3
+	BtnBorder = 2
 )
 
 type Button struct {
