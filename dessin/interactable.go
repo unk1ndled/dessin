@@ -38,7 +38,7 @@ func (cmpt *Component) isClicked() bool {
 }
 
 func (cmpt *Component) initialPress() bool {
-	return !cmpt.wasPressed() && cmpt.isPressed()
+	return !Mouse.PrevLeftButton && cmpt.isPressed()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

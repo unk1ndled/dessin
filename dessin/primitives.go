@@ -63,28 +63,13 @@ func RenderCircle(centerX, centerY, radius, stroke int32, color *window.Color, f
 	err := dx - (radius << 1)
 
 	for x >= y {
-		window.SetPixel(centerX+x, centerY+y, color)
 		go fn(centerX+x, centerY+y, stroke, color)
-
-		window.SetPixel(centerX+y, centerY+x, color)
 		go fn(centerX+y, centerY+x, stroke, color)
-
-		window.SetPixel(centerX-y, centerY+x, color)
 		go fn(centerX-y, centerY+x, stroke, color)
-
-		window.SetPixel(centerX-x, centerY+y, color)
 		go fn(centerX-x, centerY+y, stroke, color)
-
-		window.SetPixel(centerX-x, centerY-y, color)
 		go fn(centerX-x, centerY-y, stroke, color)
-
-		window.SetPixel(centerX-y, centerY-x, color)
 		go fn(centerX-y, centerY-x, stroke, color)
-
-		window.SetPixel(centerX+y, centerY-x, color)
 		go fn(centerX+y, centerY-x, stroke, color)
-
-		window.SetPixel(centerX+x, centerY-y, color)
 		go fn(centerX+x, centerY-y, stroke, color)
 
 		if err <= 0 {

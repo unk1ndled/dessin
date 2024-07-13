@@ -53,6 +53,9 @@ type Paint struct {
 	leftbar *Bar
 
 	canvas *Canvas
+
+	updatebtns   bool
+	updatecanvas bool
 }
 
 func NewPaint() *Paint {
@@ -157,16 +160,19 @@ func (pt *Paint) setBackground() {
 
 func (pt *Paint) Update() (bool, bool) {
 	Mouse.Update()
-	update := pt.topbars[0].Update()
-	update = update || pt.topbars[1].Update()
-	update = update || pt.topbars[2].Update()
-	update = update || pt.leftbar.Update()
-	update = update || pt.canvas.Update()
+	pt.updatebtns = pt.topbars[0].Update()
+	pt.updatebtns = pt.updatebtns || pt.topbars[1].Update()
+	pt.updatebtns = pt.updatebtns || pt.topbars[2].Update()
+	pt.updatebtns = pt.updatebtns || pt.leftbar.Update()
+	pt.updatecanvas = pt.canvas.Update()
 	quit := pt.checkEvent()
-	return update, quit
+	return pt.updatecanvas || pt.updatebtns, quit
 }
 func (pt *Paint) Render() {
-	pt.canvas.Render()
+	if pt.updatecanvas {
+		pt.canvas.Render()
+	}
+
 }
 
 func (pt *Paint) checkEvent() bool {

@@ -12,6 +12,8 @@ type Operation byte
 type Mode byte
 
 var (
+	DRAGGING = true
+
 	CanvasX int32
 	CanvasY int32
 	CanvasW int32
@@ -80,13 +82,25 @@ func (cvs *Canvas) Update() bool {
 		Z_PREV_PRESS = false
 		cvs.currOp = UNDO
 		return true
-	} else if cvs.isPressed() {
-		if !Mouse.PrevLeftButton {
-			cvs.updateBuffer()
+	}
+	if DRAGGING && !Mouse.LeftButton {
+		DRAGGING = false
+	}
+	if cvs.initialPress() {
+		DRAGGING = true
+
+		cvs.prevCLickX = Mouse.X
+		cvs.prevCLickY = Mouse.Y
+		copy(test, pixels)
+		cvs.updateBuffer()
+	}
+	if Mouse.LeftButton && DRAGGING {
+		if !(Mouse.PrevX == Mouse.X && Mouse.PrevY == Mouse.Y) {
+			cvs.currOp = DRAG
+			return true
 		}
-		cvs.currOp = DRAG
-		return true
-	} else if cvs.isClicked() {
+	}
+	if cvs.isClicked() {
 		cvs.currOp = CLICK
 		return true
 	}
@@ -123,22 +137,14 @@ func (cvs *Canvas) Render() {
 			cvs.undo()
 			cvs.currOp = Operation(NONE)
 		case DRAG:
-			if cvs.initialPress() {
-				cvs.prevCLickX = Mouse.X
-				cvs.prevCLickY = Mouse.Y
-				copy(test, pixels)
-			} else {
 
-				if !(Mouse.PrevX == Mouse.X && Mouse.PrevY == Mouse.Y) {
-					copy(pixels, test)
-					base := Base{Mouse.X, Mouse.Y, cvs.prevCLickX, cvs.prevCLickY, cvs.strokeWidth, cvs.drawColor}
-					shape := NewShape(base, cvs.stype)
-					if shape != nil {
-						shape.Draw()
-					}
-				}
-
+			copy(pixels, test)
+			base := Base{Mouse.X, Mouse.Y, cvs.prevCLickX, cvs.prevCLickY, cvs.strokeWidth, cvs.drawColor}
+			shape := NewShape(base, cvs.stype)
+			if shape != nil {
+				shape.Draw()
 			}
+
 		}
 	}
 
