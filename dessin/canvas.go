@@ -64,7 +64,7 @@ func NewCanvas(x, y, w, h int32) *Canvas {
 		Component:   &Component{X: x, Y: y, Width: w, Height: h},
 		buffer:      util.NewDeque[[]byte](),
 		drawColor:   colors[0],
-		currentTool: PEN, lineWidth: 20, strokeWidth: 12,
+		currentTool: PEN, lineWidth: 20, strokeWidth: 8,
 	}
 
 	test = make([]byte, len(pixels))
@@ -174,7 +174,7 @@ func (cvs *Canvas) setShape(t ShapeType) {
 func (cvs *Canvas) modifyDrawWidth(factor int32) {
 	cvs.lineWidth += factor
 	cvs.lineWidth = int32(math.Max(0, float64(cvs.lineWidth)))
-	cvs.strokeWidth = int32(math.Min(12, float64(cvs.lineWidth)))
+	cvs.strokeWidth = int32(math.Min(8, float64(cvs.lineWidth)))
 }
 
 // sets draw color
