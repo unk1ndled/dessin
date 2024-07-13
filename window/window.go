@@ -193,6 +193,7 @@ func OpenPNG(xOffset, yOffset, canvasW, canvasH int32) error {
 	if err != nil {
 		return fmt.Errorf("could not open file: %v", err)
 	}
+	defer file.Close()
 
 	img, _, err := image.Decode(file)
 	if err != nil {
