@@ -6,6 +6,9 @@ type ShapeType byte
 
 const (
 	LINESHAPE ShapeType = iota
+	RECTSHAPE
+	CIRCLESHAPE
+	TRIANGLESHAPE
 )
 
 type Base struct {
@@ -19,18 +22,45 @@ type Base struct {
 }
 
 type Shape interface {
-	Draw(pixels *[]byte)
+	Draw()
+}
+
+func NewShape(base Base, stype ShapeType) Shape {
+	switch stype {
+	case LINESHAPE:
+		return NewLine(base)
+	case RECTSHAPE:
+		return NewRect(base)
+	}
+	return nil
 }
 
 type Line struct {
 	Base
 }
 
-func NewLine(x1, y1, x2, y2, stroke int32, c *window.Color) *Line {
-	bs := Base{x1, y1, x2, y2, stroke, c}
+func NewLine(base Base) *Line {
+	bs := base
 	return &Line{Base: bs}
 }
 
-func (l Line) Draw() {
-	RenderLine(l.xStart, l.yStart, l.xEnd, l.yEnd, l.stroke, l.color, nil)
+func (l *Line) Draw() {
+	RenderLine(l.xStart, l.yStart, l.xEnd, l.yEnd, l.stroke, l.color, DrawWidth)
+}
+
+type Rect struct {
+	Base
+}
+
+func NewRect(base Base) *Rect {
+	bs := base
+	return &Rect{Base: bs}
+}
+
+func (l *Rect) Draw() {
+	RenderLine(l.xStart, l.yStart, l.xEnd, l.yStart, l.stroke, l.color, DrawWidth)
+	RenderLine(l.xStart, l.yStart, l.xStart, l.yEnd, l.stroke, l.color, DrawWidth)
+	RenderLine(l.xEnd, l.yEnd, l.xStart, l.yEnd, l.stroke, l.color, DrawWidth)
+	RenderLine(l.xEnd, l.yEnd, l.xEnd, l.yStart, l.stroke, l.color, DrawWidth)
+
 }

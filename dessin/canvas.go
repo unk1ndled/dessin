@@ -16,6 +16,8 @@ var (
 	CanvasY int32
 	CanvasW int32
 	CanvasH int32
+
+	test []byte
 )
 
 const (
@@ -38,7 +40,7 @@ const (
 type Canvas struct {
 	*Component
 	Mode
-	ShapeType
+	stype                  ShapeType
 	prevCLickX, prevCLickY int32
 
 	buffer *util.Deque[[]byte]
@@ -64,6 +66,8 @@ func NewCanvas(x, y, w, h int32) *Canvas {
 		currentTool: PEN, lineWidth: 20,
 	}
 
+	test = make([]byte, len(pixels))
+
 	RenderRect(x, y, x+w, y+h, &window.Color{R: 0, G: 0, B: 0})
 
 	return cvs
@@ -76,16 +80,6 @@ func (cvs *Canvas) Update() bool {
 		cvs.currOp = UNDO
 		return true
 	} else if cvs.isPressed() {
-		if !Mouse.PrevLeftButton {
-			cvs.updateBuffer()
-		}
-		cvs.currOp = DRAG
-		return true
-	} else if cvs.isClicked() {
-		cvs.currOp = CLICK
-		return true
-	}
-	if cvs.isPressed() {
 		if !Mouse.PrevLeftButton {
 			cvs.updateBuffer()
 		}
@@ -123,7 +117,25 @@ func (cvs *Canvas) Render() {
 			}
 		}
 	case SHAPEMODE:
-		// todo
+		switch cvs.currOp {
+		case UNDO:
+			cvs.undo()
+			cvs.currOp = Operation(NONE)
+		case DRAG:
+			if cvs.initialPress() {
+				cvs.prevCLickX = Mouse.X
+				cvs.prevCLickY = Mouse.Y
+				copy(test, pixels)
+			} else {
+				copy(pixels, test)
+				base := Base{Mouse.X, Mouse.Y, cvs.prevCLickX, cvs.prevCLickY, cvs.lineWidth, cvs.drawColor}
+				shape := NewShape(base, cvs.stype)
+				if shape != nil {
+					shape.Draw()
+				}
+
+			}
+		}
 	}
 
 }
@@ -151,7 +163,7 @@ func (cvs *Canvas) setTool(t Tool) {
 }
 
 func (cvs *Canvas) setShape(t ShapeType) {
-	cvs.ShapeType = t
+	cvs.stype = t
 	cvs.Mode = SHAPEMODE
 }
 

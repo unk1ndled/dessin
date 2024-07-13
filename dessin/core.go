@@ -131,8 +131,8 @@ func (pt *Paint) Init(pxls []byte) {
 	)
 	tools := []func(){
 		func() { pt.canvas.setTool(FILL) },
-		func() { pt.canvas.setTool(FILL) },
-		func() { pt.canvas.setTool(FILL) },
+		func() { pt.canvas.setShape(LINESHAPE) },
+		func() { pt.canvas.setShape(RECTSHAPE) },
 	}
 
 	pt.leftbar = NewBar(
@@ -140,6 +140,8 @@ func (pt *Paint) Init(pxls []byte) {
 		ButtonWidth, ButtonHeight, ButtonGap, BarPadding, VERTICAL,
 		[]*BtnConfig{
 			{Color: btnc, Fn: tools[0], ButtonIcon: icons.FILL},
+			{Color: btnc, Fn: tools[1], ButtonIcon: icons.FILL},
+			{Color: btnc, Fn: tools[2], ButtonIcon: icons.FILL},
 		},
 	)
 
