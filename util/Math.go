@@ -18,3 +18,10 @@ func Min32(a, b int32) int32 {
 	}
 	return b
 }
+
+func Abs32(a int32) int32 {
+	if a < 0 {
+		return -a
+	}
+	return a
+}

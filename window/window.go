@@ -99,7 +99,6 @@ func Visualise(name string, w, h int32, app Runnable) {
 	renderer.Copy(tex, nil, nil)
 	renderer.Present()
 
-	
 	quit := false
 	update := false
 	for !quit {
@@ -122,11 +121,22 @@ func Visualise(name string, w, h int32, app Runnable) {
 func SaveTextureAsImage(x, y, w, h int32, filename string) {
 	//TODO : implement text input
 
-	SavePNG(x, y, w, h, ScreenWidth*4, filename+".png")
+	SavePNG(x, y, w, h, ScreenWidth*4)
 
 }
 
-func SavePNG(xOffset, yOffset, w, h, pitch int32, file string) error {
+func SavePNG(xOffset, yOffset, w, h, pitch int32) error {
+
+	file, err := cfdutil.ShowSaveFileDialog(cfd.DialogConfig{
+		DefaultExtension: "png",
+	})
+	if err == cfd.ErrorCancelled {
+		log.Println("Dialog was cancelled by the user.")
+		return nil
+	} else if err != nil {
+		log.Fatal(err)
+	}
+
 	imag := image.NewRGBA(image.Rect(0, 0, int(w), int(h)))
 	for y := int32(0); y < h; y++ {
 		for x := int32(0); x < w; x++ {

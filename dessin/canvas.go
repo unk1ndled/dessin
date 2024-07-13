@@ -49,7 +49,8 @@ type Canvas struct {
 	drawColor   *window.Color
 	currOp      Operation
 
-	lineWidth int32
+	lineWidth   int32
+	strokeWidth int32
 }
 
 func NewCanvas(x, y, w, h int32) *Canvas {
@@ -63,7 +64,7 @@ func NewCanvas(x, y, w, h int32) *Canvas {
 		Component:   &Component{X: x, Y: y, Width: w, Height: h},
 		buffer:      util.NewDeque[[]byte](),
 		drawColor:   colors[0],
-		currentTool: PEN, lineWidth: 20,
+		currentTool: PEN, lineWidth: 20, strokeWidth: 12,
 	}
 
 	test = make([]byte, len(pixels))
@@ -127,11 +128,14 @@ func (cvs *Canvas) Render() {
 				cvs.prevCLickY = Mouse.Y
 				copy(test, pixels)
 			} else {
-				copy(pixels, test)
-				base := Base{Mouse.X, Mouse.Y, cvs.prevCLickX, cvs.prevCLickY, cvs.lineWidth, cvs.drawColor}
-				shape := NewShape(base, cvs.stype)
-				if shape != nil {
-					shape.Draw()
+
+				if !(Mouse.PrevX == Mouse.X && Mouse.PrevY == Mouse.Y) {
+					copy(pixels, test)
+					base := Base{Mouse.X, Mouse.Y, cvs.prevCLickX, cvs.prevCLickY, cvs.strokeWidth, cvs.drawColor}
+					shape := NewShape(base, cvs.stype)
+					if shape != nil {
+						shape.Draw()
+					}
 				}
 
 			}
@@ -170,6 +174,7 @@ func (cvs *Canvas) setShape(t ShapeType) {
 func (cvs *Canvas) modifyDrawWidth(factor int32) {
 	cvs.lineWidth += factor
 	cvs.lineWidth = int32(math.Max(0, float64(cvs.lineWidth)))
+	cvs.strokeWidth = int32(math.Min(12, float64(cvs.lineWidth)))
 }
 
 // sets draw color

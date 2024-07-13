@@ -1,8 +1,7 @@
 package dessin
 
 import (
-	"math"
-
+	"github.com/unk1ndled/draw/util"
 	"github.com/unk1ndled/draw/window"
 )
 
@@ -11,12 +10,12 @@ type widthFunc func(x, y, width int32, clr *window.Color)
 // Bresenham's Line Algorithm
 // explanation : https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 func RenderLine(x1, y1, x2, y2, width int32, color *window.Color, fn widthFunc) {
-	dx := int32(math.Abs(float64(x2 - x1)))
+	dx := (util.Abs32(x2 - x1))
 	sx := int32(-1)
 	if x1 < x2 {
 		sx = 1
 	}
-	dy := -int32(math.Abs(float64(y2 - y1)))
+	dy := -(util.Abs32(y2 - y1))
 	sy := int32(-1)
 	if y1 < y2 {
 		sy = 1
@@ -52,6 +51,51 @@ func RenderRect(x1, y1, x2, y2 int32, clr *window.Color) {
 	for i := x1; i <= x2; i++ {
 		for j := y1; j <= y2; j++ {
 			window.SetPixel(i, j, clr)
+		}
+	}
+}
+
+func RenderCircle(centerX, centerY, radius, stroke int32, color *window.Color, fn widthFunc) {
+	x := radius - 1
+	y := int32(0)
+	dx := int32(2)
+	dy := int32(2)
+	err := dx - (radius << 1)
+
+	for x >= y {
+		window.SetPixel(centerX+x, centerY+y, color)
+		go fn(centerX+x, centerY+y, stroke, color)
+
+		window.SetPixel(centerX+y, centerY+x, color)
+		go fn(centerX+y, centerY+x, stroke, color)
+
+		window.SetPixel(centerX-y, centerY+x, color)
+		go fn(centerX-y, centerY+x, stroke, color)
+
+		window.SetPixel(centerX-x, centerY+y, color)
+		go fn(centerX-x, centerY+y, stroke, color)
+
+		window.SetPixel(centerX-x, centerY-y, color)
+		go fn(centerX-x, centerY-y, stroke, color)
+
+		window.SetPixel(centerX-y, centerY-x, color)
+		go fn(centerX-y, centerY-x, stroke, color)
+
+		window.SetPixel(centerX+y, centerY-x, color)
+		go fn(centerX+y, centerY-x, stroke, color)
+
+		window.SetPixel(centerX+x, centerY-y, color)
+		go fn(centerX+x, centerY-y, stroke, color)
+
+		if err <= 0 {
+			y++
+			err += dy
+			dy += 2
+		}
+		if err > 0 {
+			x--
+			dx += 2
+			err += dx - (int32(radius) << 1)
 		}
 	}
 }
